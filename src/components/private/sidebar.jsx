@@ -1,5 +1,6 @@
 import * as React from "react";
 import { styled, useTheme } from "@mui/material/styles";
+import { NavLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
@@ -18,7 +19,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import HomeIcon from "@mui/icons-material/Home";
 import ChatIcon from "@mui/icons-material/Chat";
-import MapIcon from "@mui/icons-material/Map";
+import DriveEtaIcon from "@mui/icons-material/DriveEta";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const drawerWidth = 240;
@@ -90,6 +91,7 @@ const Drawer = styled(MuiDrawer, {
 
 export const SideBar = () => {
   const theme = useTheme();
+  const location = useLocation();
   const [open, setOpen] = React.useState(false);
 
   const handleDrawerOpen = () => {
@@ -105,14 +107,17 @@ export const SideBar = () => {
       {
         name: "INICIO",
         icon: <HomeIcon />,
+        to: "/",
       },
       {
         name: "CHAT",
         icon: <ChatIcon />,
+        to: "/chat",
       },
       {
-        name: "MAPA",
-        icon: <MapIcon />,
+        name: "CONDUCTORES",
+        icon: <DriveEtaIcon />,
+        to: "/conductores",
       },
     ],
     second: [
@@ -158,31 +163,27 @@ export const SideBar = () => {
         <Divider />
         <List>
           {sections.first.map((sf, index) => (
-            <ListItem key={index} disablePadding sx={{ display: "block" }}>
-              <ListItemButton
-                sx={{
-                  minHeight: 65,
-                  justifyContent: open ? "initial" : "center",
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
+            <NavLink
+              to={sf.to}
+              style={({ isActive }) => ({
+                color: "inherit",
+                textDecoration: "none",
+              })}
+            >
+              <ListItem key={index} disablePadding sx={{ display: "block" }}>
+                <ListItemButton
                   sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : "auto",
-                    justifyContent: "center",
+                    minHeight: 65,
+                    px: 2.5,
+                    backgroundColor:
+                      location.pathname === sf.to ? "#252525" : "inherit",
                   }}
                 >
-                  {sf.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <span style={{ fontWeight: "bold" }}>{sf.name}</span>
-                  }
-                  sx={{ opacity: open ? 1 : 0 }}
-                />
-              </ListItemButton>
-            </ListItem>
+                  <ListItemIcon>{sf.icon}</ListItemIcon>
+                  <ListItemText primary={sf.name} />
+                </ListItemButton>
+              </ListItem>
+            </NavLink>
           ))}
         </List>
         <Divider sx={{ mx: 1 }} />
