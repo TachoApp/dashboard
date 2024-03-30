@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SideBar } from "../components/private/sidebar";
 import HomePage from '../pages/home';
 import ChatPage from '../pages/chat';
@@ -7,12 +7,13 @@ import DriverPage from '../pages/driver';
 const PrivateRoutes = () => {
   return (
     <BrowserRouter>
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', marginTop: 90, marginLeft: -22 }}>
         <SideBar />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
-          <Route path="/drivers" element={<DriverPage />} />
+          <Route path="/conductores" element={<DriverPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </BrowserRouter>
