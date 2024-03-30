@@ -7,7 +7,7 @@ import DriverPage from '../pages/driver';
 const PrivateRoutes = () => {
   return (
     <BrowserRouter>
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', marginTop: 90, marginLeft: -22 }}>
         <SideBar />
         <Routes>
           <Route path="/" element={<HomePage />} />
