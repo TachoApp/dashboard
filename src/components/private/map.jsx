@@ -1,6 +1,15 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+
+const containerStyle = {
+  width: '100%',
+  height: '100%', 
+};
+
+const center = {
+  lat: -17.3937,
+  lng: -66.1571,
+};
 
 const drivers = [
   { code: 'DR001', name: 'Juan Pérez', lat: -17.3895186, lng: -66.1593585 },
@@ -21,25 +30,40 @@ const drivers = [
 ];
 
 export const Map = () => {
-  const position = [-17.3895186, -66.1593585];
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: 'AIzaSyDuPGoPpbEn3IERAonyLZhWW-h0jDwto1A',
+  });
+  const [selectedDriver, setSelectedDriver] = React.useState(null);
+
+  const handleMarkerClick = (driver) => {
+    setSelectedDriver(driver);
+  };
+
+  if (loadError) return <div>Error al cargar el mapa</div>;
+  if (!isLoaded) return <div>Cargando el mapa...</div>;
 
   return (
-    <MapContainer
-      center={position}
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
       zoom={13}
-      scrollWheelZoom={false}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
       {drivers.map((driver) => (
-        <Marker key={driver.code} position={[driver.lat, driver.lng]}>
-          <Popup>
-            <span>{driver.code}</span>
-          </Popup>
+        <Marker
+          key={driver.codigo}
+          position={{ lat: driver.latitud, lng: driver.longitud }}
+          onClick={() => handleMarkerClick(driver)}
+        >
+          {selectedDriver === driver && (
+            <InfoWindow onCloseClick={() => setSelectedDriver(null)}>
+              <div>
+                <p>Código: {driver.codigo}</p>
+                <p>Nombre: {driver.nombre}</p>
+              </div>
+            </InfoWindow>
+          )}
         </Marker>
       ))}
-    </MapContainer>
+    </GoogleMap>
   );
 };
