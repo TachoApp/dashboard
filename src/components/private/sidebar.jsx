@@ -164,6 +164,7 @@ export const SideBar = () => {
         <List>
           {sections.first.map((sf, index) => (
             <NavLink
+            key={index}
               to={sf.to}
               style={({ isActive }) => ({
                 color: "inherit",

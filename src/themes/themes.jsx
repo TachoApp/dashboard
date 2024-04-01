@@ -7,4 +7,7 @@ export const theme = createTheme({
   typography: {
     fontFamily: 'Montserrat, sans-serif',
   },
+  shape: {
+    borderRadius: 5,
+  },
 });
