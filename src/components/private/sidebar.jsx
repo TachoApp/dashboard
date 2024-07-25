@@ -109,11 +109,11 @@ export const SideBar = () => {
         icon: <HomeIcon />,
         to: "/",
       },
-      {
-        name: "CHAT",
-        icon: <ChatIcon />,
-        to: "/chat",
-      },
+      // {
+      //   name: "CHAT",
+      //   icon: <ChatIcon />,
+      //   to: "/chat",
+      // },
       {
         name: "CONDUCTORES",
         icon: <DriveEtaIcon />,

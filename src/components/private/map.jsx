@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { Box } from "@mui/material";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { theme } from "../../themes/themes";
@@ -115,10 +116,9 @@ export const Map = () => {
   }, []);
 
   return (
-    <div>
-      <div ref={mapContainerRef} style={{ width: "40vw", height: "86vh", borderRadius: theme.shape.borderRadius }} />
+    <Box>
+      <Box ref={mapContainerRef} style={{ width: "40vw", height: "86vh", borderRadius: theme.shape.borderRadius }} />
 
-      {/* Estilos para el popup */}
       <style>{`
         .mapboxgl-popup-content {
           color: #000;
@@ -130,6 +130,6 @@ export const Map = () => {
           margin: 0;
         }
       `}</style>
-    </div>
+    </Box>
   );
 };
