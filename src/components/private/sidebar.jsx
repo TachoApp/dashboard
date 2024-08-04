@@ -50,7 +50,6 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   alignItems: "center",
   justifyContent: "flex-end",
   padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
   ...theme.mixins.toolbar,
 }));
 
@@ -89,7 +88,7 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-export const SideBar = () => {
+export const SideBar = ({children}) => {
   const theme = useTheme();
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
@@ -164,24 +163,33 @@ export const SideBar = () => {
         <List>
           {sections.first.map((sf, index) => (
             <NavLink
-            key={index}
+              key={index}
               to={sf.to}
               style={({ isActive }) => ({
                 color: "inherit",
                 textDecoration: "none",
               })}
             >
-              <ListItem key={index} disablePadding sx={{ display: "block" }}>
+              <ListItem key={index} disablePadding sx={{ display: "block", mb: 1 }}>
                 <ListItemButton
                   sx={{
-                    minHeight: 65,
+                    minHeight: 48,
+                    justifyContent: open ? "initial" : "center",
                     px: 2.5,
                     backgroundColor:
                       location.pathname === sf.to ? "#252525" : "inherit",
                   }}
                 >
-                  <ListItemIcon>{sf.icon}</ListItemIcon>
-                  <ListItemText primary={sf.name} />
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : "auto",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {sf.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={sf.name} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
               </ListItem>
             </NavLink>
@@ -193,7 +201,7 @@ export const SideBar = () => {
             <ListItem key={index} disablePadding sx={{ display: "block" }}>
               <ListItemButton
                 sx={{
-                  minHeight: 65,
+                  minHeight: 48,
                   justifyContent: open ? "initial" : "center",
                   px: 2.5,
                 }}
@@ -208,9 +216,7 @@ export const SideBar = () => {
                   {ss.icon}
                 </ListItemIcon>
                 <ListItemText
-                  primary={
-                    <span style={{ fontWeight: "bold" }}>{ss.name}</span>
-                  }
+                  primary={<span style={{ fontWeight: "bold" }}>{ss.name}</span>}
                   sx={{ opacity: open ? 1 : 0 }}
                 />
               </ListItemButton>
@@ -218,7 +224,29 @@ export const SideBar = () => {
           ))}
         </List>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}></Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: "100%",
+          marginLeft: 0,
+          transition: theme.transitions.create("margin", {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          ...(open && {
+            width: `calc(100% - ${drawerWidth}px)`,
+            transition: theme.transitions.create("margin", {
+              easing: theme.transitions.easing.easeOut,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+          }),
+        }}
+      >
+        <DrawerHeader />
+        {children}
+      </Box>
     </Box>
   );
 };
