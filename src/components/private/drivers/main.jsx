@@ -1,44 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
+import driversEndpoints from '../../../services/drivers';
 import { CreateDriverButton } from './createDriverButton';
 import { DisplayDriversTable } from './displayDriversTable';
 
 export const DriversMain = () => {
-  const [drivers, setDrivers] = useState([
-    {
-      movilCode: "MOV001",
-      personalInfo: {
-        profileImage: "https://example.com/profile1.jpg",
-        fullName: "Juan Pérez",
-        idNumber: "1234567890",
-        dateOfBirth: "1985-05-15",
-        homeAddress: "Calle Falsa 123, Ciudad",
-        phone: "555-1234",
-        cellPhone: "555-5678",
-        personalReference: {
-          name: "Ana Gómez",
-          phone: "555-9876",
-          cellPhone: "555-6543"
-        }
-      },
-      vehicleInfo: {
-        brand: "Toyota",
-        model: "Corolla",
-        color: "Blanco",
-        licensePlateNumber: "ABC123",
-        type: "Sedán"
-      },
-      additionalInfo: {
-        entryDate: "2023-01-01",
-        guaranteeType: "Cobertura completa",
-        exitDate: null,
-        exitReason: null,
-        vehicleNumber: "V001",
-        radioBrand: "Motorola"
-      }
-    },
-    // Añade más conductores si es necesario
-  ]);
+  const [refreshState, setRefreshState] = useState(false);
+  const [drivers, setDrivers] = useState([]);
+
+  useEffect(() => {
+    getDrivers()
+  }, [refreshState]);
+
+  const refresh = () => {
+    setRefreshState(prevState => !prevState);
+  };
+
+  const getDrivers = async () => {
+    try {
+      const response = await driversEndpoints.getDrivers();
+      console.log('Response', response);
+      setDrivers(response);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  }
 
   return (
     <>
@@ -46,9 +32,9 @@ export const DriversMain = () => {
         Gestión de Conductores
       </Typography>
       <Box mb={2}>
-        <CreateDriverButton drivers={drivers} setDrivers={setDrivers} />
+        <CreateDriverButton drivers={drivers} setDrivers={setDrivers} refresh={refresh} />
       </Box>
-      <DisplayDriversTable drivers={drivers} setDrivers={setDrivers} />
+      <DisplayDriversTable drivers={drivers} setDrivers={setDrivers} refresh={refresh} />
     </>
   );
 };
