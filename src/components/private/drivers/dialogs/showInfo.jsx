@@ -11,6 +11,8 @@ import {
   Divider
 } from '@mui/material';
 
+const API_IMAGES_URL = `${import.meta.env.VITE_BASE_URL}/`;
+
 export const ShowInfoDialog = ({ open, onClose, driver }) => {
   if (!driver) return null;
 
@@ -20,9 +22,9 @@ export const ShowInfoDialog = ({ open, onClose, driver }) => {
         <Grid container spacing={3}>
           <Grid item xs={12} md={4} container justifyContent="center">
             <Avatar 
-              src={driver.personalInfo.profileImage} 
+              src={`${API_IMAGES_URL}${driver.personalInfo.profileImage}`}
               alt={driver.personalInfo.fullName}
-              sx={{ width: 150, height: 150, border: '2px solid #ddd' }}
+              sx={{ width: 150, height: 150, border: '2px solid #ddd', mt: 2 }}
             />
           </Grid>
           <Grid item xs={12} md={8}>

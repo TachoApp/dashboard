@@ -8,7 +8,8 @@ import {
   TableRow, 
   Paper, 
   IconButton,
-  Avatar
+  Avatar,
+  Tooltip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,7 +18,9 @@ import { UpdateDialog } from './dialogs/update';
 import { DeleteDialog } from './dialogs/delete';
 import { ShowInfoDialog } from './dialogs/showInfo';
 
-export const DisplayDriversTable = ({ drivers, setDrivers }) => {
+const API_IMAGES_URL = `${import.meta.env.VITE_BASE_URL}/`;
+
+export const DisplayDriversTable = ({ drivers, setDrivers, refresh }) => {
   const [selectedDriver, setSelectedDriver] = React.useState(null);
   const [openEdit, setOpenEdit] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
@@ -42,54 +45,46 @@ export const DisplayDriversTable = ({ drivers, setDrivers }) => {
   const handleCloseDelete = () => setOpenDelete(false);
   const handleCloseInfo = () => setOpenInfo(false);
 
-  const handleUpdateDriver = (updatedDriver) => {
-    setDrivers(drivers.map(driver => 
-      driver.movilCode === updatedDriver.movilCode ? updatedDriver : driver
-    ));
-    console.log("Conductor actualizado:", updatedDriver);
-    handleCloseEdit();
-  };
-
-  const handleDeleteDriver = (movilCode) => {
-    setDrivers(drivers.filter(driver => driver.movilCode !== movilCode));
-    console.log("Conductor eliminado:", movilCode);
-    handleCloseDelete();
-  };
-
   return (
     <>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Profile</TableCell>
-              <TableCell>Movil Code</TableCell>
-              <TableCell>Full Name</TableCell>
-              <TableCell>License Plate</TableCell>
-              <TableCell>Vehicle</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Perfil</TableCell>
+              <TableCell>Código Móvil</TableCell>
+              <TableCell>Nombre Completo</TableCell>
+              <TableCell>Placa</TableCell>
+              <TableCell>Vehículo</TableCell>
+              <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {drivers.map((driver) => (
               <TableRow key={driver.movilCode}>
                 <TableCell>
-                  <Avatar src={driver.personalInfo.profileImage} alt={driver.personalInfo.fullName} />
+                  <Avatar src={`${API_IMAGES_URL}${driver.personalInfo.profileImage}`} alt={driver.personalInfo.fullName} sx={{width: 50, height: 50}} />
                 </TableCell>
                 <TableCell>{driver.movilCode}</TableCell>
                 <TableCell>{driver.personalInfo.fullName}</TableCell>
                 <TableCell>{driver.vehicleInfo.licensePlateNumber}</TableCell>
-                <TableCell>{`${driver.vehicleInfo.brand} ${driver.vehicleInfo.model}`}</TableCell>
+                <TableCell>{`${driver.vehicleInfo.brand} ${driver.vehicleInfo.model} ${driver.vehicleInfo.color}`}</TableCell>
                 <TableCell>
-                  <IconButton onClick={() => handleOpenInfo(driver)}>
-                    <InfoIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleOpenEdit(driver)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleOpenDelete(driver)}>
-                    <DeleteIcon />
-                  </IconButton>
+                  <Tooltip title="Ver información">
+                    <IconButton onClick={() => handleOpenInfo(driver)}>
+                      <InfoIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Editar">
+                    <IconButton onClick={() => handleOpenEdit(driver)}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Eliminar">
+                    <IconButton onClick={() => handleOpenDelete(driver)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}
@@ -103,13 +98,13 @@ export const DisplayDriversTable = ({ drivers, setDrivers }) => {
             open={openEdit} 
             onClose={handleCloseEdit}
             driver={selectedDriver}
-            onUpdate={handleUpdateDriver}
+            refresh={refresh}
           />
           <DeleteDialog 
             open={openDelete} 
             onClose={handleCloseDelete}
             driver={selectedDriver}
-            onDelete={() => handleDeleteDriver(selectedDriver.movilCode)}
+            refresh={refresh}
           />
           <ShowInfoDialog 
             open={openInfo} 

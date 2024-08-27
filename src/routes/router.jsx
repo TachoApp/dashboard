@@ -4,8 +4,8 @@ import PublicRoutes from "./public";
 import { ToastProvider } from "../components/private/feedback/toast"
 
 const Router = () => {
-  const isLoggedIn = localStorage.getItem('isLoggedIn');
-  const [logged, setLogged] = React.useState(true);
+  const isLoggedIn = localStorage.getItem('isLoggedInTachoBusiness');
+  const [logged, setLogged] = React.useState(isLoggedIn || false);
 
   return <ToastProvider>{logged ? <PrivateRoutes /> : <PublicRoutes />}</ToastProvider>;;
 };

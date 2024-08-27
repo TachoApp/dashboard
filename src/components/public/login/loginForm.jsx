@@ -1,5 +1,4 @@
-// LoginForm.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -8,9 +7,30 @@ import {
   Typography, 
   Box 
 } from '@mui/material';
-import Logo from '../../../assets/img/TachoLogo.png'
+import Logo from '../../../assets/img/TachoLogo.png';
+import authEndpoints from '../../../services/auth';
 
 export const LoginForm = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Previene el comportamiento por defecto del formulario
+    setError(''); // Resetea el error
+
+    try {
+      const response = await authEndpoints.loginAdm({ user: username, password });
+      console.log('Login successful:', response);
+      localStorage.setItem('tachoTokenBusiness', response.token);
+      localStorage.setItem('isLoggedInTachoBusiness', true);
+      window.location.reload();
+    } catch (err) {
+      console.error('Login failed:', err);
+      setError('Credenciales inválidas');
+    }
+  };
+
   return (
     <Card 
       sx={{ 
@@ -24,6 +44,8 @@ export const LoginForm = () => {
     >
       <CardContent>
         <Box 
+          component="form"
+          onSubmit={handleLogin}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -44,6 +66,8 @@ export const LoginForm = () => {
             variant="outlined"
             fullWidth
             margin="normal"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             sx={{
                 mb: -.2
             }}
@@ -54,8 +78,16 @@ export const LoginForm = () => {
             variant="outlined"
             fullWidth
             margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
+          {error && (
+            <Typography color="error" sx={{ mt: 1 }}>
+              {error}
+            </Typography>
+          )}
           <Button 
+            type="submit" // Establece el tipo de botón como submit
             variant="contained" 
             color="primary"
             fullWidth

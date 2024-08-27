@@ -1,18 +1,26 @@
-import { apiHelper, apiHelper2, apiHelperWithToken } from "../helpers/apiHelper";
+import { apiHelper, apiHelperWithToken } from "../helpers/apiHelper";
 
 const driversEndpoints = {
   createDriver: async (data) => {
     try {
-      const response = await apiHelper2.post('/taxis-controller/add-taxi', data);
+      const response = await apiHelperWithToken.post('/driver', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  updateDriver: async (data) => {
+  updateDriver: async (id, data) => {
     try {
-      const response = await apiHelper.put('/radio-movil/edit', data);
+      const response = await apiHelperWithToken.put(`/driver/${id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -21,7 +29,7 @@ const driversEndpoints = {
 
   getDrivers: async () => {
     try {
-      const response = await apiHelper2.get(`/taxis-controller/get-taxis?businessid=66b5eed6f78f582c9f2530a1`);
+      const response = await apiHelperWithToken.get(`/driver`);
       return response.data;
     } catch (error) {
       throw error;
@@ -30,7 +38,7 @@ const driversEndpoints = {
 
   deleteDriver: async (id) => {
     try {
-      const response = await apiHelper.delete(`/radio-movil-admin/delete/${id}`);
+      const response = await apiHelperWithToken.delete(`/driver/${id}`);
       return response.data;
     } catch (error) {
       throw error;

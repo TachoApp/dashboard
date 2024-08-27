@@ -20,7 +20,7 @@ export const DriversMain = () => {
     try {
       const response = await driversEndpoints.getDrivers();
       console.log('Response', response);
-      setDrivers(response);
+      setDrivers(response.drivers);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
