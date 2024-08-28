@@ -9,6 +9,15 @@ const authEndpoints = {
           throw error;
         }
       },
+
+      loginOp: async (data) => {
+        try {
+          const response = await apiHelper.post('/auth/operators', data);
+          return response.data;
+        } catch (error) {
+          throw error;
+        }
+      },
   };
   
 export default authEndpoints;

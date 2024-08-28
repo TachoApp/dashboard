@@ -5,24 +5,35 @@ import {
   TextField, 
   Button, 
   Typography, 
-  Box 
+  Box, 
+  Switch, 
+  FormControlLabel, 
+  IconButton, 
+  InputAdornment 
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import Logo from '../../../assets/img/TachoLogo.png';
 import authEndpoints from '../../../services/auth';
 
 export const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
   const [error, setError] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false); // Estado para controlar si es Admin o Operadora
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Previene el comportamiento por defecto del formulario
-    setError(''); // Resetea el error
+    e.preventDefault();
+    setError('');
 
     try {
-      const response = await authEndpoints.loginAdm({ user: username, password });
+      const response = isAdmin
+        ? await authEndpoints.loginAdm({ user: username, password }) // Si es Admin, usa loginAdm
+        : await authEndpoints.loginOp({ user: username, password }); // Si es Operadora, usa loginOp
+
       console.log('Login successful:', response);
       localStorage.setItem('tachoTokenBusiness', response.token);
+      localStorage.setItem('userRolTachoBusiness', response.user.rol); // Guarda el rol en el localStorage
       localStorage.setItem('isLoggedInTachoBusiness', true);
       window.location.reload();
     } catch (err) {
@@ -61,6 +72,21 @@ export const LoginForm = () => {
               marginBottom: 16 
             }} 
           />
+          <FormControlLabel
+            control={
+              <Switch 
+                checked={isAdmin} 
+                onChange={() => setIsAdmin(!isAdmin)} 
+                color="primary"
+              />
+            }
+            label={isAdmin ? "Administrador" : "Operadora"}
+            labelPlacement="end"
+            sx={{
+              alignSelf: 'flex-start',
+              mb: -.8
+            }}
+          />
           <TextField
             label="Usuario"
             variant="outlined"
@@ -74,12 +100,25 @@ export const LoginForm = () => {
           />
           <TextField
             label="Contraseña"
-            type="password"
+            type={showPassword ? "text" : "password"}
             variant="outlined"
             fullWidth
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    sx={{mr: .1}}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
           {error && (
             <Typography color="error" sx={{ mt: 1 }}>
@@ -87,7 +126,7 @@ export const LoginForm = () => {
             </Typography>
           )}
           <Button 
-            type="submit" // Establece el tipo de botón como submit
+            type="submit"
             variant="contained" 
             color="primary"
             fullWidth
