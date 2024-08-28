@@ -17,40 +17,46 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { Home, Chat, DriveEta, Logout, SupportAgent } from "@mui/icons-material";
-
-const sections = {
-  first: [
-    {
-      name: "INICIO",
-      icon: <Home />,
-      to: "/",
-    },
-    // {
-    //   name: "CHAT",
-    //   icon: <Chat />,
-    //   to: "/chat",
-    // },
-    {
-      name: "CONDUCTORES",
-      icon: <DriveEta />,
-      to: "/conductores",
-    },
-    {
-      name: "OPERADORES",
-      icon: <SupportAgent />,
-      to: "/operadores",
-    },
-  ],
-  second: [
-    {
-      name: "SALIR",
-      icon: <Logout />,
-    },
-  ],
-};
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Button from "@mui/material/Button";
+import { Home, Chat, DriveEta, Logout, SupportAgent, ShareLocation } from "@mui/icons-material";
 
 const drawerWidth = 240;
+
+const menuItems = [
+  {
+    name: "INICIO",
+    icon: <Home />,
+    to: "/",
+    allowedUserTypes: ["adm", "operator"],
+  },
+  {
+    name: "CONDUCTORES",
+    icon: <DriveEta />,
+    to: "/conductores",
+    allowedUserTypes: ["adm", "operator"],
+  },
+  {
+    name: "OPERADORES",
+    icon: <SupportAgent />,
+    to: "/operadores",
+    allowedUserTypes: ["adm"],
+  },
+  {
+    name: "PARADAS",
+    icon: <ShareLocation />,
+    to: "/paradas",
+    allowedUserTypes: ["adm", "operator"],
+  },
+];
+
+const userType = localStorage.getItem("userRolTachoBusiness");
+
+const filteredMenuItems = menuItems.filter((item) => item.allowedUserTypes.includes(userType));
 
 const openedMixin = (theme) => ({
   width: drawerWidth,
@@ -116,10 +122,11 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-export const SideBar = ({children}) => {
+export const SideBar = ({ children }) => {
   const theme = useTheme();
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -127,6 +134,19 @@ export const SideBar = ({children}) => {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    localStorage.clear(); 
+    window.location.reload();
+  };
+
+  const handleLogoutCancel = () => {
+    setLogoutDialogOpen(false);
   };
 
   return (
@@ -154,32 +174,27 @@ export const SideBar = ({children}) => {
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
+            {theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </DrawerHeader>
         <Divider />
         <List>
-          {sections.first.map((sf, index) => (
+          {filteredMenuItems.map((item, index) => (
             <NavLink
               key={index}
-              to={sf.to}
+              to={item.to}
               style={({ isActive }) => ({
                 color: "inherit",
                 textDecoration: "none",
               })}
             >
-              <ListItem key={index} disablePadding sx={{ display: "block", mb: 1 }}>
+              <ListItem disablePadding sx={{ display: "block", mb: 1 }}>
                 <ListItemButton
                   sx={{
                     minHeight: 48,
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
-                    backgroundColor:
-                      location.pathname === sf.to ? "#252525" : "inherit",
+                    backgroundColor: location.pathname === item.to ? "#252525" : "inherit",
                   }}
                 >
                   <ListItemIcon
@@ -189,63 +204,61 @@ export const SideBar = ({children}) => {
                       justifyContent: "center",
                     }}
                   >
-                    {sf.icon}
+                    {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary={sf.name} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText primary={item.name} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
               </ListItem>
             </NavLink>
           ))}
         </List>
-        <Divider sx={{ mx: 1 }} />
+        <Divider />
         <List>
-          {sections.second.map((ss, index) => (
-            <ListItem key={index} disablePadding sx={{ display: "block" }}>
-              <ListItemButton
+          <ListItem disablePadding sx={{ display: "block", mb: 1 }}>
+            <ListItemButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? "initial" : "center",
+                px: 2.5,
+              }}
+              onClick={handleLogoutClick}
+            >
+              <ListItemIcon
                 sx={{
-                  minHeight: 48,
-                  justifyContent: open ? "initial" : "center",
-                  px: 2.5,
+                  minWidth: 0,
+                  mr: open ? 3 : "auto",
+                  justifyContent: "center",
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : "auto",
-                    justifyContent: "center",
-                  }}
-                >
-                  {ss.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={<span style={{ fontWeight: "bold" }}>{ss.name}</span>}
-                  sx={{ opacity: open ? 1 : 0 }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                <Logout />
+              </ListItemIcon>
+              <ListItemText primary="SALIR" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </ListItem>
         </List>
       </Drawer>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: "100%",
-          marginLeft: 0,
-          transition: theme.transitions.create("margin", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          ...(open && {
-            width: `calc(100% - ${drawerWidth}px)`,
-            transition: theme.transitions.create("margin", {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          }),
-        }}
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleLogoutCancel}
+        aria-labelledby="logout-dialog-title"
+        aria-describedby="logout-dialog-description"
       >
+        <DialogTitle id="logout-dialog-title">{"Confirmar cierre de sesión"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="logout-dialog-description">
+            ¿Estás seguro de que deseas cerrar sesión?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{mx: 2, mb: 1}}>
+          <Button onClick={handleLogoutCancel} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleLogoutConfirm} color="error" autoFocus>
+            Salir
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: "100%", marginLeft: 0 }}>
         <DrawerHeader />
         {children}
       </Box>
