@@ -17,10 +17,38 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import HomeIcon from "@mui/icons-material/Home";
-import ChatIcon from "@mui/icons-material/Chat";
-import DriveEtaIcon from "@mui/icons-material/DriveEta";
-import LogoutIcon from "@mui/icons-material/Logout";
+import { Home, Chat, DriveEta, Logout, SupportAgent } from "@mui/icons-material";
+
+const sections = {
+  first: [
+    {
+      name: "INICIO",
+      icon: <Home />,
+      to: "/",
+    },
+    // {
+    //   name: "CHAT",
+    //   icon: <Chat />,
+    //   to: "/chat",
+    // },
+    {
+      name: "CONDUCTORES",
+      icon: <DriveEta />,
+      to: "/conductores",
+    },
+    {
+      name: "OPERADORES",
+      icon: <SupportAgent />,
+      to: "/operadores",
+    },
+  ],
+  second: [
+    {
+      name: "SALIR",
+      icon: <Logout />,
+    },
+  ],
+};
 
 const drawerWidth = 240;
 
@@ -99,32 +127,6 @@ export const SideBar = ({children}) => {
 
   const handleDrawerClose = () => {
     setOpen(false);
-  };
-
-  const sections = {
-    first: [
-      {
-        name: "INICIO",
-        icon: <HomeIcon />,
-        to: "/",
-      },
-      // {
-      //   name: "CHAT",
-      //   icon: <ChatIcon />,
-      //   to: "/chat",
-      // },
-      {
-        name: "CONDUCTORES",
-        icon: <DriveEtaIcon />,
-        to: "/conductores",
-      },
-    ],
-    second: [
-      {
-        name: "SALIR",
-        icon: <LogoutIcon />,
-      },
-    ],
   };
 
   return (

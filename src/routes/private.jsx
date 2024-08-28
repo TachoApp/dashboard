@@ -3,6 +3,7 @@ import { SideBar } from "../components/private/sidebar";
 import HomePage from '../pages/home';
 import ChatPage from '../pages/chat';
 import DriverPage from '../pages/driver';
+import OperatorsPage from '../pages/operators';
 
 const PrivateRoutes = () => {
   return (
@@ -12,6 +13,7 @@ const PrivateRoutes = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/conductores" element={<DriverPage />} />
+          <Route path="/operadores" element={<OperatorsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </SideBar>

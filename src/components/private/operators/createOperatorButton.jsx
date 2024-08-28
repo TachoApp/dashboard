@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@mui/material';
-import { CreateDialog } from './dialogs/create';
+import { CreateOperatorDialog } from './dialogs/create';
 
-export const CreateDriverButton = ({ refresh }) => {
+export const CreateOperatorButton = ({ refresh }) => {
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
@@ -11,9 +11,9 @@ export const CreateDriverButton = ({ refresh }) => {
   return (
     <>
       <Button variant="contained" color="primary" onClick={handleOpen}>
-        <b>Crear Conductor</b>
+        <b>Crear Operador</b>
       </Button>
-      <CreateDialog open={open} onClose={handleClose} refresh={refresh} />
+      <CreateOperatorDialog open={open} onClose={handleClose} refresh={refresh} />
     </>
   );
 };
