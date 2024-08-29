@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { LoginForm } from './loginForm';
+//comentario de prueba
 
 export const LoginMain = () => {
   return (
