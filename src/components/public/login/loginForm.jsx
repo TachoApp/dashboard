@@ -18,9 +18,9 @@ import authEndpoints from '../../../services/auth';
 export const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false); // Estado para controlar si es Admin o Operadora
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,12 +28,14 @@ export const LoginForm = () => {
 
     try {
       const response = isAdmin
-        ? await authEndpoints.loginAdm({ user: username, password }) // Si es Admin, usa loginAdm
-        : await authEndpoints.loginOp({ user: username, password }); // Si es Operadora, usa loginOp
+        ? await authEndpoints.loginAdm({ user: username, password }) 
+        : await authEndpoints.loginOp({ user: username, password }); 
 
       console.log('Login successful:', response);
       localStorage.setItem('tachoTokenBusiness', response.token);
-      localStorage.setItem('userRolTachoBusiness', response.user.rol); // Guarda el rol en el localStorage
+      localStorage.setItem('userRolTachoBusiness', response.user.rol);
+      localStorage.setItem('businessIdTachoBusiness', response.user.businessId);
+      localStorage.setItem('userIdTachoBusiness', response.user.id);
       localStorage.setItem('isLoggedInTachoBusiness', true);
       window.location.reload();
     } catch (err) {

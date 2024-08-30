@@ -80,6 +80,15 @@ const driversEndpoints = {
       throw error;
     }
   },
+
+  toggleDriverStatus: async (id) => {
+    try {
+      const response = await apiHelperWithToken.post(`/driver/status/activate`, { driverId: id });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 export default driversEndpoints;

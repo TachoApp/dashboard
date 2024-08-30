@@ -45,6 +45,9 @@ export const ShowInfoDialog = ({ open, onClose, driver }) => {
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
+                <Typography variant='body1' gutterBottom>
+                  <strong>Password:</strong> {driver.password}
+                </Typography>
                 <Typography variant="body1" gutterBottom>
                   <strong>Teléfono:</strong> {driver.personalInfo.phone}
                 </Typography>
