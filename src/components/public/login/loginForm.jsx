@@ -35,6 +35,7 @@ export const LoginForm = () => {
       localStorage.setItem('tachoTokenBusiness', response.token);
       localStorage.setItem('userRolTachoBusiness', response.user.rol);
       localStorage.setItem('businessIdTachoBusiness', response.user.businessId);
+      localStorage.setItem('businessNameTachoBusiness', response.user.businessName);
       localStorage.setItem('userIdTachoBusiness', response.user.id);
       localStorage.setItem('isLoggedInTachoBusiness', true);
       window.location.reload();

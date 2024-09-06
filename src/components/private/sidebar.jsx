@@ -55,6 +55,7 @@ const menuItems = [
 ];
 
 const userType = localStorage.getItem("userRolTachoBusiness");
+const businessName = localStorage.getItem("businessNameTachoBusiness");
 
 const filteredMenuItems = menuItems.filter((item) => item.allowedUserTypes.includes(userType));
 
@@ -167,7 +168,7 @@ export const SideBar = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h5" noWrap component="div">
-            TACHO DASHBOARD | v0.0.1
+            TACHO | {businessName}
           </Typography>
         </Toolbar>
       </AppBar>
