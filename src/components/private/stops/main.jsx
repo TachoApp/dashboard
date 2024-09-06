@@ -3,6 +3,7 @@ import { Typography, Box } from "@mui/material";
 import { CreateStopButton } from "./createStopButton";
 import driversEndpoints from "../../../services/drivers";
 import { DisplayStopsTable } from "./displayStopsTable";
+import { useLogout } from "../../../helpers/logout";
 
 export const StopsMain = () => {
   const [refresh, setRefresh] = useState(false);
@@ -15,9 +16,11 @@ export const StopsMain = () => {
   const getStops = async () => {
     try {
       const response = await driversEndpoints.getDriversStops();
-      console.log('Response', response);  
       setStops(response);
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error(error);
     }
   };

@@ -15,6 +15,7 @@ import {
 import { PhotoCamera } from "@mui/icons-material";
 import driversEndpoints from "../../../../services/drivers";
 import { useToast } from "../../feedback/toast";
+import { useLogout } from '../../../../helpers/logout';
 
 const API_IMAGES_URL = `${import.meta.env.VITE_BASE_URL}/`;
 
@@ -184,6 +185,9 @@ export const UpdateDialog = ({ open, onClose, driver, refresh }) => {
       onClose();
       refresh();
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error actualizando conductor:", error);
       handleOpenToast("Error al actualizar el conductor, verifica que el codigo del movil no sea repetido", "error");
     }

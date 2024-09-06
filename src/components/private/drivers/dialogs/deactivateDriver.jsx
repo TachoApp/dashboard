@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import driversEndpoints from '../../../../services/drivers';
 import { useToast } from '../../feedback/toast';
+import { useLogout } from '../../../../helpers/logout';
 
 export const DeactivateDriverDialog = ({ open, onClose, driver, refresh }) => {
     console.log(driver)
@@ -21,6 +22,9 @@ export const DeactivateDriverDialog = ({ open, onClose, driver, refresh }) => {
       handleOpenToast("Conductor desactivado exitosamente", "success");
       onClose();
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error desactivando conductor:", error);
       handleOpenToast("Error al desactivar el conductor", "error");
     }

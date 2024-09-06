@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { useToast } from '../../feedback/toast';
 import operatorsEndpoints from '../../../../services/operators';
+import { useLogout } from '../../../../helpers/logout';
 
 export const UpdateOperatorDialog = ({ open, onClose, operatorData, refresh }) => {
   const { handleOpenToast } = useToast();
@@ -43,6 +44,9 @@ export const UpdateOperatorDialog = ({ open, onClose, operatorData, refresh }) =
       handleClose();
       handleOpenToast("Operadora actualizada exitosamente", "success");
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error actualizando operadora:", error);
       handleOpenToast("Error al actualizar la operadora", "error");
     }

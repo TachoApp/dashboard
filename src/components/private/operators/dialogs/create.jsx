@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { useToast } from '../../feedback/toast';
 import operatorsEndpoints from '../../../../services/operators';
+import { useLogout } from '../../../../helpers/logout';
 
 export const CreateOperatorDialog = ({ open, onClose, refresh }) => {
   const { handleOpenToast } = useToast();
@@ -28,6 +29,9 @@ export const CreateOperatorDialog = ({ open, onClose, refresh }) => {
       handleClose();
       handleOpenToast("Operadora creada exitosamente", "success");
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error creando operadora:", error);
       handleOpenToast("Error al crear la operadora", "error");
     }

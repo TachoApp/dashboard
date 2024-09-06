@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { useToast } from '../../feedback/toast';
 import operatorsEndpoints from '../../../../services/operators';
+import { useLogout } from '../../../../helpers/logout';
 
 export const DeleteOperatorDialog = ({ open, onClose, operator, refresh }) => {
   const { handleOpenToast } = useToast();
@@ -22,6 +23,9 @@ export const DeleteOperatorDialog = ({ open, onClose, operator, refresh }) => {
       handleClose();
       handleOpenToast("Operadora eliminada exitosamente", "success");
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error eliminando operadora:", error);
       handleOpenToast("Error al eliminar la operadora", "error");
     }

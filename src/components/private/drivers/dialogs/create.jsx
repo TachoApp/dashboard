@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { PhotoCamera } from "@mui/icons-material";
 import { useToast } from "../../feedback/toast";
+import { useLogout } from '../../../../helpers/logout';
 
 const capitalizeWords = (str) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
@@ -171,6 +172,9 @@ export const CreateDialog = ({ open, onClose, refresh }) => {
       onClose();
       refresh();
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error creando conductor:", error);
       handleOpenToast("Error al crear el conductor, verifica que el código del móvil no sea repetido", "error");
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,13 +7,14 @@ import {
   TextField,
   Button,
   Typography,
-} from '@mui/material';
-import { useToast } from '../../feedback/toast';
-import driversEndpoints from '../../../../services/drivers';
+} from "@mui/material";
+import { useToast } from "../../feedback/toast";
+import driversEndpoints from "../../../../services/drivers";
+import { useLogout } from "../../../../helpers/logout";
 
 export const DeleteStopDialog = ({ open, onClose, stop, refresh }) => {
   const { handleOpenToast } = useToast();
-  const [confirmName, setConfirmName] = useState('');
+  const [confirmName, setConfirmName] = useState("");
 
   const handleDelete = async () => {
     try {
@@ -22,20 +23,23 @@ export const DeleteStopDialog = ({ open, onClose, stop, refresh }) => {
       handleClose();
       handleOpenToast("Parada eliminada exitosamente", "success");
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error eliminando parada:", error);
       handleOpenToast("Error al eliminar la parada", "error");
     }
   };
 
   const handleClose = () => {
-    setConfirmName('');
+    setConfirmName("");
     onClose();
   };
 
   const isDeleteEnabled = confirmName === stop.name;
 
   const handleKeyPress = (event) => {
-    if (event.key === 'Enter' && isDeleteEnabled) {
+    if (event.key === "Enter" && isDeleteEnabled) {
       handleDelete();
     }
   };
@@ -66,10 +70,10 @@ export const DeleteStopDialog = ({ open, onClose, stop, refresh }) => {
       </DialogContent>
       <DialogActions sx={{ mx: 2, mb: 1 }}>
         <Button onClick={handleClose}>Cancelar</Button>
-        <Button 
-          onClick={handleDelete} 
-          disabled={!isDeleteEnabled} 
-          variant="contained" 
+        <Button
+          onClick={handleDelete}
+          disabled={!isDeleteEnabled}
+          variant="contained"
           color="error"
         >
           Eliminar

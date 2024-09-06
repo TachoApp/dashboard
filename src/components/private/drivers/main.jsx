@@ -3,6 +3,7 @@ import { Typography, Box } from '@mui/material';
 import driversEndpoints from '../../../services/drivers';
 import { CreateDriverButton } from './createDriverButton';
 import { DisplayDriversTable } from './displayDriversTable';
+import { useLogout } from '../../../helpers/logout';
 
 export const DriversMain = () => {
   const [refreshState, setRefreshState] = useState(false);
@@ -22,6 +23,9 @@ export const DriversMain = () => {
       console.log('Response', response);
       setDrivers(response.drivers);
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error('Error fetching users:', error);
     }
   }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import driversEndpoints from '../../../../services/drivers';
 import { useToast } from '../../feedback/toast';
+import { useLogout } from '../../../../helpers/logout';
 
 export const ActivateDriverDialog = ({ open, onClose, driver, refresh }) => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
@@ -20,6 +21,9 @@ export const ActivateDriverDialog = ({ open, onClose, driver, refresh }) => {
       handleOpenToast("Conductor activado exitosamente por 24 horas", "success");
       onClose();
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error("Error activando conductor:", error);
       handleOpenToast("Error al activar el conductor", "error");
     }

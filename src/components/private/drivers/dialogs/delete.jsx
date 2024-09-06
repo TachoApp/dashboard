@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, TextField } from '@mui/material';
 import driversEndpoints from '../../../../services/drivers';
 import { useToast } from '../../feedback/toast';
+import { useLogout } from '../../../../helpers/logout';
 
 export const DeleteDialog = ({ open, onClose, driver, refresh }) => {
   const [confirmCode, setConfirmCode] = useState('');
@@ -33,6 +34,9 @@ export const DeleteDialog = ({ open, onClose, driver, refresh }) => {
         handleOpenToast("Conductor eliminado exitosamente", "success");
         onClose();
       } catch (error) {
+        if (error.response.status === 498) {
+          useLogout();
+        }
         console.error("Error eliminando conductor:", error);
         handleOpenToast("Error al eliminar el conductor", "error");
       }

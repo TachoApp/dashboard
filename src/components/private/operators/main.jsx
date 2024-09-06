@@ -3,6 +3,7 @@ import { Typography, Box } from '@mui/material';
 import operatorsEndpoints from '../../../services/operators';
 import { DisplayOperatorsTable } from './displayOperatorsTable';
 import { CreateOperatorButton } from './createOperatorButton';
+import { useLogout } from '../../../helpers/logout';
 
 export const OperatorMain = () => {
   const [refreshState, setRefreshState] = useState(false);
@@ -22,6 +23,9 @@ export const OperatorMain = () => {
       console.log('Response', response);
       setOperators(response);
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error('Error fetching operators:', error);
     }
   };
