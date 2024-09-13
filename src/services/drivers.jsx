@@ -27,9 +27,14 @@ const driversEndpoints = {
     }
   },
 
-  getDrivers: async () => {
+  getDrivers: async ({ page = 1, size = 100, filter = '' }) => {
     try {
-      const response = await apiHelperWithToken.get(`/driver`);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+        filter: filter
+      });
+      const response = await apiHelperWithToken.get(`/driver?${queryParams.toString()}`);
       return response.data;
     } catch (error) {
       throw error;
