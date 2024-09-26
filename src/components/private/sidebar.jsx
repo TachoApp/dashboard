@@ -168,7 +168,7 @@ export const SideBar = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h5" noWrap component="div">
-            TACHO | {businessName}
+            {businessName} | Tacho Dashboard v1.0.0
           </Typography>
         </Toolbar>
       </AppBar>

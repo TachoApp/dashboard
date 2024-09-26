@@ -3,6 +3,7 @@ import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { Map } from "./map";
 import { RidesTableDisplay } from "./ridesTableDisplay";
 import { io } from "socket.io-client"
+import { useLogout } from "../../../helpers/logout";
 import driversEndpoints from "../../../services/drivers";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
@@ -35,14 +36,30 @@ export const HomeMain = () => {
         const existingDriverIndex = prevDrivers.findIndex((driver) => driver.movilCode === data.movilCode);
 
         if (existingDriverIndex !== -1) {
-          // Actualiza la ubicación del conductor si ya existe
+          // Actualiza la ubicación y el estado del conductor si ya existe
           const updatedDrivers = [...prevDrivers];
-          updatedDrivers[existingDriverIndex] = { ...updatedDrivers[existingDriverIndex], lat: data.lat, lng: data.lng };
+          updatedDrivers[existingDriverIndex] = { 
+            ...updatedDrivers[existingDriverIndex], 
+            lat: data.lat, 
+            lng: data.lng,
+            isFree: data.isFree 
+          };
           return updatedDrivers;
         } else {
           // Agrega un nuevo conductor
           return [...prevDrivers, data];
         }
+      });
+    });
+
+    socket.on("driverStatusUpdate", (data) => {
+      console.log('Driver status updated:', data);
+      setDrivers((prevDrivers) => {
+        return prevDrivers.map(driver => 
+          driver.movilCode === data.movilCode 
+            ? { ...driver, isFree: data.isFree }
+            : driver
+        );
       });
     });
 
@@ -62,6 +79,7 @@ export const HomeMain = () => {
     return () => {
       socket.off("connect");
       socket.off("locationUpdate");
+      socket.off("driverStatusUpdate");
       socket.off("driverDisconnect");
       socket.off("disconnect");
       socket.disconnect();
@@ -77,6 +95,9 @@ export const HomeMain = () => {
       const response = await driversEndpoints.getDriversStops(); 
       setStops(response);
     } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
       console.error(error);
     }
   };

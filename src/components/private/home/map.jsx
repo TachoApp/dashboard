@@ -36,7 +36,12 @@ export const Map = ({ drivers, stops }) => {
         type: "circle",
         source: "drivers",
         paint: {
-          "circle-color": "#4264fb",
+          "circle-color": [
+            "case",
+            ["get", "isFree"],
+            "#4264fb",  // Color for free drivers
+            "#FF8C00"   // Orange color for occupied drivers
+          ],
           "circle-radius": 10,
           "circle-stroke-width": 2,
           "circle-stroke-color": "#ffffff",
@@ -60,6 +65,7 @@ export const Map = ({ drivers, stops }) => {
         properties: {
           code: driver.movilCode,
           name: driver.fullName,
+          isFree: driver.isFree,
         },
       }));
 
@@ -67,42 +73,52 @@ export const Map = ({ drivers, stops }) => {
         type: "FeatureCollection",
         features: driverFeatures,
       });
+    }
+  }, [drivers, map]);
 
-      // Evento de clic para mostrar el popup
+  useEffect(() => {
+    if (map) {
+      // Evento de clic para mostrar el popup solo para conductores libres
       map.on("click", "drivers-layer", (e) => {
-        const coordinates = e.features[0].geometry.coordinates.slice();
-        const { code, name } = e.features[0].properties;
+        const { isFree, code, name } = e.features[0].properties;
+        if (isFree) {
+          const coordinates = e.features[0].geometry.coordinates.slice();
 
-        // Contenido del popup
-        const popupContent = `
-        <div>
-          <p style="margin: 1px 0;"><strong>Code:</strong> ${code}</p>
-          <p style="margin: 1px 0;"><strong>Name:</strong> ${name}</p>
-          <button 
-          style="margin-top: 5px; background-color: #4264fb; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; width: 100%;"
-        >
-          Asignar Carrera
-        </button>
-        </div>
-      `;
+          // Contenido del popup
+          const popupContent = `
+          <div>
+            <p style="margin: 1px 0;"><strong>Code:</strong> ${code}</p>
+            <p style="margin: 1px 0;"><strong>Name:</strong> ${name}</p>
+            <button 
+              title="Esta función se habilitará en la versión 2.0.0 (Fecha estimada: 7/10/2024)"
+              style="margin-top: 5px; background-color: #4264fb; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: not-allowed; width: 100%;"
+              disabled
+            >
+              Asignar Carrera
+            </button>
+          </div>
+        `;
 
-        // Muestra el popup en la posición del clic
-        popupRef.current
-          .setLngLat(coordinates)
-          .setHTML(popupContent)
-          .addTo(map);
+          // Muestra el popup en la posición del clic
+          popupRef.current
+            .setLngLat(coordinates)
+            .setHTML(popupContent)
+            .addTo(map);
+        }
       });
 
-      // Cambia el cursor al pasar sobre un conductor
-      map.on("mouseenter", "drivers-layer", () => {
-        map.getCanvas().style.cursor = "pointer";
+      // Cambia el cursor al pasar sobre un conductor libre
+      map.on("mouseenter", "drivers-layer", (e) => {
+        if (e.features[0].properties.isFree) {
+          map.getCanvas().style.cursor = "pointer";
+        }
       });
 
       map.on("mouseleave", "drivers-layer", () => {
         map.getCanvas().style.cursor = "";
       });
     }
-  }, [drivers, map]);
+  }, [map]);
 
   useEffect(() => {
     if (map && stops?.length > 0) {
