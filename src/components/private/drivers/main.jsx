@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, IconButton, Tooltip } from "@mui/material";
+import OfflineBoltIcon from '@mui/icons-material/OfflineBolt';
 import driversEndpoints from "../../../services/drivers";
+import walletEndpoints from "../../../services/wallet";
 import { CreateDriverButton } from "./createDriverButton";
 import { DisplayDriversTable } from "./displayDriversTable";
 import { SearchBar } from "./searchBar";
 import { useLogout } from "../../../helpers/logout";
 import { TablePagination } from "@mui/material";
 
-// Función de animación suave mejorada
 const smoothScrollTo = (targetY, duration) => {
   const startY = window.pageYOffset;
   const difference = targetY - startY;
@@ -23,7 +24,6 @@ const smoothScrollTo = (targetY, duration) => {
     }
   };
 
-  // Función de aceleración cúbica
   const easeInOutCubic = (t) => {
     return t < 0.5 
       ? 4 * t * t * t 
@@ -39,10 +39,15 @@ export const DriversMain = () => {
   const [filter, setFilter] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [wallet, setWallet] = useState(null); // Inicializa con null para evitar renderizados innecesarios
 
   useEffect(() => {
     getDrivers();
   }, [refreshState, filter, page, rowsPerPage]);
+
+  useEffect(() => {
+    getWallet();
+  }, [refreshState]);
 
   const refresh = () => {
     setRefreshState((prevState) => !prevState);
@@ -51,12 +56,25 @@ export const DriversMain = () => {
   const getDrivers = async () => {
     try {
       const response = await driversEndpoints.getDrivers({ filter });
+      console.log(response)
       setDrivers(response.drivers);
     } catch (error) {
       if (error.response?.status === 498) {
         useLogout();
       }
       console.error("Error fetching users:", error);
+    }
+  };
+
+  const getWallet = async () => {
+    try {
+      const response = await walletEndpoints.getWallet();
+      setWallet(response.wallet); // Guarda la respuesta en el estado wallet
+    } catch (error) {
+      if (error.response?.status === 498) {
+        useLogout();
+      }
+      console.error("Error fetching wallet:", error);
     }
   };
 
@@ -77,9 +95,25 @@ export const DriversMain = () => {
 
   return (
     <>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Gestión de Conductores
-      </Typography>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Typography variant="h4" component="h1" gutterBottom>
+          Gestión de Conductores
+        </Typography>
+        {wallet && (
+          <Box display="flex" alignItems="center">
+          <Tooltip title="Créditos disponibles" arrow>
+            <IconButton color="primary">
+              <OfflineBoltIcon style={{ fontSize: 38 }} />
+            </IconButton>
+          </Tooltip>
+          <Typography variant="h5" component="p" sx={{ml: 1}}>
+            <b>{wallet.credits}</b> créditos
+          </Typography>
+        </Box>
+        
+        )}
+      </Box>
+
       <Box mb={2}>
         <CreateDriverButton
           drivers={drivers}
