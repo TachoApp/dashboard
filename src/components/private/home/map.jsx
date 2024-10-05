@@ -3,18 +3,22 @@ import { Box } from "@mui/material";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { theme } from "../../../themes/themes";
+import { ManualRideDialog } from "./dialogs/main";
+
+const mapToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export const Map = ({ drivers, stops }) => {
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
-  const markersRef = useRef({}); // Para almacenar marcadores de paradas
+  const markersRef = useRef({});
   const popupRef = useRef(
     new mapboxgl.Popup({ offset: 25, closeButton: true })
   );
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState(null);
 
   useEffect(() => {
-    mapboxgl.accessToken =
-      "pk.eyJ1IjoidGFtZmxpa2siLCJhIjoiY2x1aDJzYXZwMmppNjJybzlncHltN3JnbyJ9.O6S2SZU1Uf-NMpXLtGVuhQ";
+    mapboxgl.accessToken = mapToken;
     const initialMap = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
@@ -78,36 +82,40 @@ export const Map = ({ drivers, stops }) => {
 
   useEffect(() => {
     if (map) {
-      // Evento de clic para mostrar el popup solo para conductores libres
       map.on("click", "drivers-layer", (e) => {
         const { isFree, code, name } = e.features[0].properties;
         if (isFree) {
           const coordinates = e.features[0].geometry.coordinates.slice();
 
-          // Contenido del popup
           const popupContent = `
           <div>
             <p style="margin: 1px 0;"><strong>Code:</strong> ${code}</p>
             <p style="margin: 1px 0;"><strong>Name:</strong> ${name}</p>
             <button 
-              title="Esta función se habilitará en la versión 2.0.0 (Fecha estimada: 7/10/2024)"
-              style="margin-top: 5px; background-color: #4264fb; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: not-allowed; width: 100%;"
-              disabled
+              id="assignRideBtn"
+              style="margin-top: 5px; background-color: #4264fb; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; width: 100%;"
             >
               Asignar Carrera
             </button>
           </div>
         `;
 
-          // Muestra el popup en la posición del clic
           popupRef.current
             .setLngLat(coordinates)
             .setHTML(popupContent)
             .addTo(map);
+
+          // Add event listener to the button after it's added to the DOM
+          setTimeout(() => {
+            document.getElementById("assignRideBtn").addEventListener("click", () => {
+              setSelectedDriver({ code, name, coordinates });
+              setDialogOpen(true);
+              popupRef.current.remove();
+            });
+          }, 0);
         }
       });
 
-      // Cambia el cursor al pasar sobre un conductor libre
       map.on("mouseenter", "drivers-layer", (e) => {
         if (e.features[0].properties.isFree) {
           map.getCanvas().style.cursor = "pointer";
@@ -198,6 +206,18 @@ export const Map = ({ drivers, stops }) => {
           margin: 0;
         }
       `}</style>
+
+      {selectedDriver && (
+        <ManualRideDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          driverData={{
+            fullName: selectedDriver.name,
+            movilCode: selectedDriver.code,
+            coordinates: selectedDriver.coordinates,
+          }}
+        />
+      )}
     </Box>
   );
 };
