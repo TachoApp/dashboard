@@ -5,6 +5,7 @@ import { RidesTableDisplay } from "./ridesTableDisplay";
 import { io } from "socket.io-client"
 import { useLogout } from "../../../helpers/logout";
 import driversEndpoints from "../../../services/drivers";
+import ridesEndpoints from "../../../services/rides";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 const businessId = localStorage.getItem('businessIdTachoBusiness');
@@ -21,6 +22,7 @@ export const HomeMain = () => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("lg"));
   const [drivers, setDrivers] = useState([]);
   const [stops, setStops] = useState([]);
+  const [rides, setRides] = useState([]);
 
   useEffect(() => {
     socket.connect();
@@ -87,8 +89,22 @@ export const HomeMain = () => {
   }, []);
 
   useEffect(() => {
+    getRides();
     getStops();
   }, []);
+
+  const getRides = async () => {
+    try {
+      const response = await ridesEndpoints.getRides(); 
+      console.log(response)
+      setRides(response);
+    } catch (error) {
+      if (error.response.status === 498) {
+        useLogout();
+      }
+      console.error(error);
+    }
+  }
 
   const getStops = async () => {
     try {

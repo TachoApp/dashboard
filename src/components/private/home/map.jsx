@@ -70,6 +70,7 @@ export const Map = ({ drivers, stops }) => {
           code: driver.movilCode,
           name: driver.fullName,
           isFree: driver.isFree,
+          id: driver.driverId,
         },
       }));
 
@@ -83,7 +84,7 @@ export const Map = ({ drivers, stops }) => {
   useEffect(() => {
     if (map) {
       map.on("click", "drivers-layer", (e) => {
-        const { isFree, code, name } = e.features[0].properties;
+        const { isFree, code, name, id } = e.features[0].properties;
         if (isFree) {
           const coordinates = e.features[0].geometry.coordinates.slice();
 
@@ -108,7 +109,7 @@ export const Map = ({ drivers, stops }) => {
           // Add event listener to the button after it's added to the DOM
           setTimeout(() => {
             document.getElementById("assignRideBtn").addEventListener("click", () => {
-              setSelectedDriver({ code, name, coordinates });
+              setSelectedDriver({ code, name, coordinates, id });
               setDialogOpen(true);
               popupRef.current.remove();
             });
@@ -215,6 +216,7 @@ export const Map = ({ drivers, stops }) => {
             fullName: selectedDriver.name,
             movilCode: selectedDriver.code,
             coordinates: selectedDriver.coordinates,
+            id: selectedDriver.id
           }}
         />
       )}

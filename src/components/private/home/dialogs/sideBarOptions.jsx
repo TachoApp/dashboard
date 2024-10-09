@@ -51,8 +51,7 @@ export const SideBarOptions = ({ driverData, formData, onFormChange, clearAllPoi
         />
       </Box>
 
-
-      <Typography gutterBottom sx={{ fontSize: 18, fontWeight: "bold", mt: 4, mb: 2 }}>Datos de la carrera</Typography>
+      <Typography gutterBottom sx={{ fontSize: 18, fontWeight: "bold", mt: 4, mb: 2 }}>Ruta de la carrera</Typography>
       {formData.points.length === 0 && (
         <Typography color='primary' sx={{ fontSize: 14}}> 
           - Haz click izquierdo en el mapa para agregar un punto de recojo y rutas a la carrera.
@@ -82,14 +81,14 @@ export const SideBarOptions = ({ driverData, formData, onFormChange, clearAllPoi
 
       {formData.points.length > 0 && (
         <Button
-        fullWidth
-        color="error"
-        variant="contained"
-        onClick={clearAllPoints}
-        sx={{ mt: 1 }}
-      >
-        Reiniciar rutas
-      </Button>
+          fullWidth
+          color="error"
+          variant="contained"
+          onClick={clearAllPoints}
+          sx={{ mt: 1 }}
+        >
+          Reiniciar rutas
+        </Button>
       )}
     </Box>
   );
