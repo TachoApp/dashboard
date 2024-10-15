@@ -8,7 +8,7 @@ import ridesEndpoints from '../../../../services/rides';
 import { useLogout } from '../../../../helpers/logout';
 import { useToast } from '../../feedback/toast';
 
-export const ManualRideDialog = ({ open, onClose, driverData }) => {
+export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
   const { handleOpenToast } = useToast();
   const [formData, setFormData] = useState({
     userName: '',
@@ -17,7 +17,8 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
     points: [],
     fee: '',
     paymentMethod: '',
-    comments: ''
+    comments: '',
+    selectedDriver: ''
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
@@ -32,7 +33,8 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
                     (data.userPhone || data.userMobile) && 
                     data.points.length >= 2 &&
                     data.fee &&
-                    data.paymentMethod;
+                    data.paymentMethod &&
+                    data.selectedDriver;
     setIsFormValid(isValid);
   }, []);
 
@@ -52,11 +54,11 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
   const handleSubmit = async () => {
     const payload = {
       user: {
-        name: formData.userName,  // Asegúrate de que formData.userName no esté vacío
+        name: formData.userName,
         cellphone: formData.userMobile,
         phone: formData.userPhone
       },
-      locations: formData.points.map((point, index) => ({  // Cambié location a locations
+      locations: formData.points.map((point, index) => ({
         point: index + 1,
         lat: point.lat,
         lng: point.lng,
@@ -64,11 +66,11 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
       })),
       ride: {
         fee: parseFloat(formData.fee),
-        paymentMethod: formData.paymentMethod,  // Asegúrate de que formData.paymentMethod tenga un valor válido
+        paymentMethod: formData.paymentMethod,
         comments: formData.comments
       },
       driver: {
-        driverId: driverData.id
+        driverId: formData.selectedDriver
       },
       type: "manual"
     };
@@ -76,7 +78,7 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
     console.log('Payload to be sent:', payload);
 
     try {
-      const response = await ridesEndpoints.createManualRide(payload);  // Pasa el payload correctamente
+      const response = await ridesEndpoints.createManualRide(payload);
       console.log(response)
       handleOpenToast("Carrera manual creada exitosamente", "success");
     } catch (error) {
@@ -88,6 +90,9 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
     }
     onClose();
   };
+
+  // Find the selected driver's data
+  const selectedDriverData = availableDrivers.find(driver => driver.driverId === formData.selectedDriver) || {};
 
   return (
     <Dialog
@@ -116,7 +121,7 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
             sx={{ overflowY: 'auto', '::-webkit-scrollbar': { background: 'transparent' }, '::-webkit-scrollbar-thumb': { borderRadius: 8 } }}
           >
             <SideBarOptions
-              driverData={driverData}
+              driverData={selectedDriverData}
               formData={formData}
               onFormChange={handleFormChange}
               clearAllPoints={clearAllPoints}
@@ -153,12 +158,26 @@ export const ManualRideDialog = ({ open, onClose, driverData }) => {
               fullWidth
               margin="normal"
             />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Seleccionar conductor</InputLabel>
+              <Select
+                value={formData.selectedDriver}
+                onChange={(e) => handleFormChange({ ...formData, selectedDriver: e.target.value })}
+                label="Seleccionar conductor"
+              >
+                {availableDrivers.map((driver) => (
+                  <MenuItem key={driver.driverId} value={driver.driverId}>
+                    {`${driver.fullName} (${driver.movilCode})`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
           <Box flexGrow={1}>
             <RideMap
               points={formData.points}
               onPointsUpdate={handleMapUpdate}
-              initialCenter={driverData.coordinates}
+              availableDrivers={availableDrivers}
             />
           </Box>
         </Box>

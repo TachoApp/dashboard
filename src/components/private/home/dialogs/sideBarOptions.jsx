@@ -21,8 +21,14 @@ export const SideBarOptions = ({ driverData, formData, onFormChange, clearAllPoi
   return (
     <Box>
       <Typography sx={{ fontSize: 18, fontWeight: "bold" }} gutterBottom>Datos del móvil</Typography>
-      <Typography>Nombre: {driverData.fullName}</Typography>
-      <Typography>Código: {driverData.movilCode}</Typography>
+      {driverData && driverData.fullName ? (
+        <>
+          <Typography>Nombre: {driverData.fullName}</Typography>
+          <Typography>Código: {driverData.movilCode}</Typography>
+        </>
+      ) : (
+        <Typography color="text.secondary">No se ha seleccionado un conductor</Typography>
+      )}
 
       <Typography sx={{ fontSize: 18, fontWeight: "bold", mt: 3, mb: 2 }} gutterBottom>Datos del usuario</Typography>
       <TextField

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { theme } from "../../../themes/themes";
@@ -11,11 +11,8 @@ export const Map = ({ drivers, stops }) => {
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
   const markersRef = useRef({});
-  const popupRef = useRef(
-    new mapboxgl.Popup({ offset: 25, closeButton: true })
-  );
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState(null);
+  const [availableDrivers, setAvailableDrivers] = useState([]);
 
   useEffect(() => {
     mapboxgl.accessToken = mapToken;
@@ -40,12 +37,7 @@ export const Map = ({ drivers, stops }) => {
         type: "circle",
         source: "drivers",
         paint: {
-          "circle-color": [
-            "case",
-            ["get", "isFree"],
-            "#4264fb",  // Color for free drivers
-            "#FF8C00"   // Orange color for occupied drivers
-          ],
+          "circle-color": "#4264fb",
           "circle-radius": 10,
           "circle-stroke-width": 2,
           "circle-stroke-color": "#ffffff",
@@ -58,9 +50,14 @@ export const Map = ({ drivers, stops }) => {
     return () => initialMap.remove();
   }, []);
 
+  // Replace socket-based driver updates with prop-based updates
+  useEffect(() => {
+    setAvailableDrivers(drivers);
+  }, [drivers]);
+
   useEffect(() => {
     if (map) {
-      const driverFeatures = drivers.map((driver) => ({
+      const driverFeatures = availableDrivers.map((driver) => ({
         type: "Feature",
         geometry: {
           type: "Point",
@@ -69,7 +66,6 @@ export const Map = ({ drivers, stops }) => {
         properties: {
           code: driver.movilCode,
           name: driver.fullName,
-          isFree: driver.isFree,
           id: driver.driverId,
         },
       }));
@@ -79,52 +75,33 @@ export const Map = ({ drivers, stops }) => {
         features: driverFeatures,
       });
     }
-  }, [drivers, map]);
+  }, [availableDrivers, map]);
 
   useEffect(() => {
     if (map) {
-      map.on("click", "drivers-layer", (e) => {
-        const { isFree, code, name, id } = e.features[0].properties;
-        if (isFree) {
-          const coordinates = e.features[0].geometry.coordinates.slice();
-
-          const popupContent = `
-          <div>
-            <p style="margin: 1px 0;"><strong>Code:</strong> ${code}</p>
-            <p style="margin: 1px 0;"><strong>Name:</strong> ${name}</p>
-            <button 
-              id="assignRideBtn"
-              style="margin-top: 5px; background-color: #4264fb; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; width: 100%;"
-            >
-              Asignar Carrera
-            </button>
-          </div>
-        `;
-
-          popupRef.current
-            .setLngLat(coordinates)
-            .setHTML(popupContent)
-            .addTo(map);
-
-          // Add event listener to the button after it's added to the DOM
-          setTimeout(() => {
-            document.getElementById("assignRideBtn").addEventListener("click", () => {
-              setSelectedDriver({ code, name, coordinates, id });
-              setDialogOpen(true);
-              popupRef.current.remove();
-            });
-          }, 0);
-        }
-      });
-
-      map.on("mouseenter", "drivers-layer", (e) => {
-        if (e.features[0].properties.isFree) {
-          map.getCanvas().style.cursor = "pointer";
-        }
+      map.on("mouseenter", "drivers-layer", () => {
+        map.getCanvas().style.cursor = "pointer";
       });
 
       map.on("mouseleave", "drivers-layer", () => {
         map.getCanvas().style.cursor = "";
+      });
+
+      map.on("click", "drivers-layer", (e) => {
+        const { code, name, id } = e.features[0].properties;
+        const coordinates = e.features[0].geometry.coordinates.slice();
+
+        const popupContent = `
+          <div>
+            <p style="margin: 1px 0; color: black; font-size: 15px;"><strong>Codigo:</strong> ${code}</p>
+            <p style="margin: 1px 0; color: black; font-size: 15px;"><strong>Nombre:</strong> ${name}</p>
+          </div>
+        `;
+
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(popupContent)
+          .addTo(map);
       });
     }
   }, [map]);
@@ -186,7 +163,7 @@ export const Map = ({ drivers, stops }) => {
   }, [stops, map]);
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       <Box
         ref={mapContainerRef}
         style={{
@@ -195,31 +172,25 @@ export const Map = ({ drivers, stops }) => {
           borderRadius: theme.shape.borderRadius,
         }}
       />
-
-      <style>{`
-        .mapboxgl-popup-content {
-          color: #000;
-          padding: 10px;
-          border-radius: 5px;
-        }
-
-        .popup-content p {
-          margin: 0;
-        }
-      `}</style>
-
-      {selectedDriver && (
-        <ManualRideDialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          driverData={{
-            fullName: selectedDriver.name,
-            movilCode: selectedDriver.code,
-            coordinates: selectedDriver.coordinates,
-            id: selectedDriver.id
-          }}
-        />
-      )}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setDialogOpen(true)}
+        sx={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          zIndex: 1000,
+          fontWeight: 'bold'
+        }}
+      >
+        Carrera manual
+      </Button>
+      <ManualRideDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        availableDrivers={availableDrivers}
+      />
     </Box>
   );
 };
