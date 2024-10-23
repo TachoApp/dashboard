@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Button, Box, Tooltip, Typography, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Button, Box, Tooltip, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ReplayIcon from '@mui/icons-material/Replay';
 import { SideBarOptions } from './sideBarOptions';
@@ -10,6 +10,7 @@ import { useToast } from '../../feedback/toast';
 
 export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
   const { handleOpenToast } = useToast();
+  const [isSelectingDriver, setIsSelectingDriver] = useState(false);
   const [formData, setFormData] = useState({
     userName: '',
     userPhone: '',
@@ -46,6 +47,14 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
     });
   }, [validateForm]);
 
+  const handleDriverSelection = (driverId) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedDriver: driverId
+    }));
+    setIsSelectingDriver(false);
+  };
+
   const clearAllPoints = useCallback(() => {
     setFormData(prev => ({ ...prev, points: [] }));
     setIsFormValid(false);
@@ -75,11 +84,9 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
       type: "manual"
     };
 
-    console.log('Payload to be sent:', payload);
-
     try {
       const response = await ridesEndpoints.createManualRide(payload);
-      console.log(response)
+      console.log(response);
       handleOpenToast("Carrera manual creada exitosamente", "success");
     } catch (error) {
       if (error.response && error.response.status === 498) {
@@ -91,7 +98,6 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
     onClose();
   };
 
-  // Find the selected driver's data
   const selectedDriverData = availableDrivers.find(driver => driver.driverId === formData.selectedDriver) || {};
 
   return (
@@ -125,59 +131,17 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
               formData={formData}
               onFormChange={handleFormChange}
               clearAllPoints={clearAllPoints}
+              onToggleDriverSelection={setIsSelectingDriver}
+              isSelectingDriver={isSelectingDriver}
             />
-            <Typography sx={{ fontSize: 18, fontWeight: "bold", mt: 3, mb: 2 }}>Detalles de la carrera</Typography>
-            <TextField
-              label="Tarifa"
-              name="fee"
-              type="number"
-              value={formData.fee}
-              onChange={(e) => handleFormChange({ ...formData, fee: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Método de pago</InputLabel>
-              <Select
-                value={formData.paymentMethod}
-                onChange={(e) => handleFormChange({ ...formData, paymentMethod: e.target.value })}
-                label="Método de pago"
-              >
-                <MenuItem value="cash">Efectivo</MenuItem>
-                <MenuItem value="qr">QR</MenuItem>
-                <MenuItem value="card">Tarjeta</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Comentarios"
-              name="comments"
-              multiline
-              rows={4}
-              value={formData.comments}
-              onChange={(e) => handleFormChange({ ...formData, comments: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Seleccionar conductor</InputLabel>
-              <Select
-                value={formData.selectedDriver}
-                onChange={(e) => handleFormChange({ ...formData, selectedDriver: e.target.value })}
-                label="Seleccionar conductor"
-              >
-                {availableDrivers.map((driver) => (
-                  <MenuItem key={driver.driverId} value={driver.driverId}>
-                    {`${driver.fullName} (${driver.movilCode})`}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
           </Box>
           <Box flexGrow={1}>
             <RideMap
               points={formData.points}
               onPointsUpdate={handleMapUpdate}
-              availableDrivers={availableDrivers}
+              availableDrivers={isSelectingDriver ? availableDrivers : []}
+              onDriverSelect={handleDriverSelection}
+              selectedDriver={formData.selectedDriver}
             />
           </Box>
         </Box>

@@ -2,21 +2,71 @@ import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton } from '@mui/material';
-import { theme } from '../../../../themes/themes';
 import CloseIcon from '@mui/icons-material/Close';
 
 const mapToken = import.meta.env.VITE_MAPBOX_TOKEN;
 mapboxgl.accessToken = mapToken;
 
-export const RideMap = ({ points, onPointsUpdate, initialCenter }) => {
+export const RideMap = ({ 
+  points, 
+  onPointsUpdate, 
+  initialCenter,
+  availableDrivers = [],
+  onDriverSelect,
+  selectedDriver
+}) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const driversMarkersRef = useRef({});
   const maxPoints = 5;
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDriverData, setSelectedDriverData] = useState(null);
+  const [driverSelectionDialog, setDriverSelectionDialog] = useState(false);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Clear existing driver markers
+    Object.values(driversMarkersRef.current).forEach(marker => marker.remove());
+    driversMarkersRef.current = {};
+
+    // Add new driver markers if we're in selection mode
+    availableDrivers.forEach(driver => {
+      const el = document.createElement('div');
+      el.style.display = 'flex';
+      el.style.flexDirection = 'column';
+      el.style.alignItems = 'center';
+
+      const label = document.createElement('div');
+      label.textContent = driver.movilCode;
+      label.style.color = 'black';
+      label.style.backgroundColor = 'white';
+      label.style.padding = '2px 5px';
+      label.style.borderRadius = '3px';
+      label.style.fontSize = '12px';
+      label.style.fontWeight = 'bold';
+      label.style.marginBottom = '5px';
+      el.appendChild(label);
+
+      const marker = new mapboxgl.Marker({
+        element: el,
+        anchor: 'bottom',
+      })
+        .setLngLat([driver.lng, driver.lat])
+        .addTo(mapRef.current);
+
+      marker.getElement().addEventListener('click', () => {
+        setSelectedDriverData(driver); // Guardamos el conductor seleccionado
+        setDriverSelectionDialog(true); // Abrimos el diálogo de selección de conductor
+      });
+
+      driversMarkersRef.current[driver.driverId] = marker;
+    });
+  }, [availableDrivers]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -103,46 +153,10 @@ export const RideMap = ({ points, onPointsUpdate, initialCenter }) => {
     }
   }, [points]);
 
-  const drawRoute = async () => {
-    const coordinates = points.map(point => `${point.lng},${point.lat}`).join(';');
-    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.routes && data.routes.length > 0) {
-        const route = data.routes[0].geometry;
-
-        mapRef.current.addSource('route', {
-          'type': 'geojson',
-          'data': {
-            'type': 'Feature',
-            'properties': {},
-            'geometry': route
-          }
-        });
-
-        mapRef.current.addLayer({
-          'id': 'route',
-          'type': 'line',
-          'source': 'route',
-          'layout': {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          'paint': {
-            'line-color': '#3b87e2',
-            'line-width': 5,
-          }
-        });
-
-        const bounds = new mapboxgl.LngLatBounds();
-        route.coordinates.forEach(coord => bounds.extend(coord));
-        mapRef.current.fitBounds(bounds, { padding: 50 });
-      }
-    } catch (error) {
-      console.error('Error fetching route:', error);
+  const handleDriverSelect = () => {
+    if (selectedDriverData) {
+      onDriverSelect(selectedDriverData.driverId); // Guardamos el ID del conductor seleccionado
+      setDriverSelectionDialog(false); // Cerramos el diálogo de selección
     }
   };
 
@@ -222,36 +236,21 @@ export const RideMap = ({ points, onPointsUpdate, initialCenter }) => {
 
       {isLoading && <p>Cargando nombre de la ubicación...</p>}
 
-      <Dialog open={isModalOpen} onClose={handleModalClose}>
-  <DialogTitle sx={{fontWeight: "bold"}}>
-    Agregar Punto
-    <IconButton
-      aria-label="close"
-      onClick={handleModalClose}
-      sx={{
-        position: 'absolute',
-        right: 8,
-        top: 8,
-        color: (theme) => theme.palette.grey[500],
-      }}
-    >
-      <CloseIcon />
-    </IconButton>
-  </DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      ¿Quieres agregar este punto como el punto de recojo (A) o una parte de la ruta (B, C, D, E)?
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions sx={{mx: 2, mb: 1}}>
-    <Button onClick={() => addPoint(true)} color="success" variant='contained' disabled={points.length > 0} sx={{fontWeight: 'bold'}}>
-      Agregar punto de recojo (A)
-    </Button>
-    <Button onClick={() => addPoint(false)} color="primary" variant='contained' sx={{fontWeight: 'bold'}}>
-      Agregar punto ruta
-    </Button>
-  </DialogActions>
-</Dialog>
+      {/* Diálogo de Confirmación de Selección de Conductor */}
+      <Dialog open={driverSelectionDialog} onClose={() => setDriverSelectionDialog(false)}>
+        <DialogTitle>Seleccionar Conductor</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Deseas seleccionar al conductor {selectedDriverData?.movilCode}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDriverSelectionDialog(false)}>Cancelar</Button>
+          <Button onClick={handleDriverSelect} color="primary">
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

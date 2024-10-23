@@ -2,20 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { Map } from "./map";
 import { RidesTableDisplay } from "./ridesTableDisplay";
-import { io } from "socket.io-client"
 import { useLogout } from "../../../helpers/logout";
 import driversEndpoints from "../../../services/drivers";
 import ridesEndpoints from "../../../services/rides";
-
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
-const businessId = localStorage.getItem('businessIdTachoBusiness');
-const userId = localStorage.getItem('userIdTachoBusiness');
-
-// Crear instancia de Socket.IO
-const socket = io(SOCKET_URL, {
-  transports: ["websocket"],
-  autoConnect: false,
-});
+import { useSocket } from "../../../helpers/SocketContext";
 
 export const HomeMain = () => {
   const theme = useTheme();
@@ -23,14 +13,10 @@ export const HomeMain = () => {
   const [drivers, setDrivers] = useState([]);
   const [stops, setStops] = useState([]);
   const [rides, setRides] = useState([]);
+  const socket = useSocket(); // Obtenemos el socket del contexto
 
   useEffect(() => {
-    socket.connect();
-
-    socket.on("connect", () => {
-      console.log("Conectado al servidor de WebSocket");
-      socket.emit("registerUser", { userId: userId, role: "business", businessId: businessId });
-    });
+    if (!socket) return;
 
     socket.on("locationUpdate", (data) => {
       console.log(data);
@@ -74,19 +60,12 @@ export const HomeMain = () => {
       });
     });
 
-    socket.on("disconnect", () => {
-      console.log("Desconectado del servidor de WebSocket");
-    });
-
     return () => {
-      socket.off("connect");
       socket.off("locationUpdate");
       socket.off("driverStatusUpdate");
       socket.off("driverDisconnect");
-      socket.off("disconnect");
-      socket.disconnect();
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     getRides();
@@ -96,22 +75,22 @@ export const HomeMain = () => {
   const getRides = async () => {
     try {
       const response = await ridesEndpoints.getRides(); 
-      console.log(response)
+      console.log(response);
       setRides(response);
     } catch (error) {
-      if (error.response.status === 498) {
+      if (error.response?.status === 498) {
         useLogout();
       }
       console.error(error);
     }
-  }
+  };
 
   const getStops = async () => {
     try {
       const response = await driversEndpoints.getDriversStops(); 
       setStops(response);
     } catch (error) {
-      if (error.response.status === 498) {
+      if (error.response?.status === 498) {
         useLogout();
       }
       console.error(error);
