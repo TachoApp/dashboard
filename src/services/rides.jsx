@@ -10,9 +10,9 @@ const ridesEndpoints = {
     }
   },
 
-  getRides: async () => {
+  getRides: async (size, page) => {
     try {
-      const response = await apiHelperWithToken.get(`/rides/business`);
+      const response = await apiHelperWithToken.get(`/rides/business?page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
       throw error;

@@ -8,20 +8,21 @@ import ridesEndpoints from '../../../../services/rides';
 import { useLogout } from '../../../../helpers/logout';
 import { useToast } from '../../feedback/toast';
 
+const initialFormState = {
+  userName: '',
+  userPhone: '',
+  userMobile: '',
+  points: [],
+  fee: '',
+  paymentMethod: '',
+  comments: '',
+  selectedDriver: null,
+};
+
 export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
   const { handleOpenToast } = useToast();
   const [isSelectingDriver, setIsSelectingDriver] = useState(false);
-  const [formData, setFormData] = useState({
-    userName: '',
-    userPhone: '',
-    userMobile: '',
-    points: [],
-    fee: '',
-    paymentMethod: '',
-    comments: '',
-    selectedDriver: ''
-  });
-
+  const [formData, setFormData] = useState(initialFormState);
   const [isFormValid, setIsFormValid] = useState(false);
 
   const handleFormChange = useCallback((newData) => {
@@ -35,7 +36,7 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
                     data.points.length >= 2 &&
                     data.fee &&
                     data.paymentMethod &&
-                    data.selectedDriver;
+                    data.selectedDriver; 
     setIsFormValid(isValid);
   }, []);
 
@@ -47,17 +48,29 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
     });
   }, [validateForm]);
 
-  const handleDriverSelection = (driverId) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedDriver: driverId
-    }));
+  const handleDriverSelection = (driver) => {
+    const updatedFormData = {
+      ...formData,
+      selectedDriver: {
+        driverId: driver.driverId,
+        fullName: driver.fullName,
+        movilCode: driver.movilCode
+      }
+    };
+    setFormData(updatedFormData);
+    validateForm(updatedFormData); 
     setIsSelectingDriver(false);
   };
 
   const clearAllPoints = useCallback(() => {
     setFormData(prev => ({ ...prev, points: [] }));
+    validateForm({ ...formData, points: [] });
+  }, [formData, validateForm]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormState);
     setIsFormValid(false);
+    setIsSelectingDriver(false);
   }, []);
 
   const handleSubmit = async () => {
@@ -79,7 +92,7 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
         comments: formData.comments
       },
       driver: {
-        driverId: formData.selectedDriver
+        driverId: formData.selectedDriver.driverId
       },
       type: "manual"
     };
@@ -88,6 +101,8 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
       const response = await ridesEndpoints.createManualRide(payload);
       console.log(response);
       handleOpenToast("Carrera manual creada exitosamente", "success");
+      resetForm(); // Reset del formulario después de crear exitosamente
+      onClose();
     } catch (error) {
       if (error.response && error.response.status === 498) {
         useLogout();
@@ -95,10 +110,14 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
       console.error(error);
       handleOpenToast("Hubo un problema al crear la carrera manual", "error");
     }
-    onClose();
   };
 
-  const selectedDriverData = availableDrivers.find(driver => driver.driverId === formData.selectedDriver) || {};
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open, resetForm]);
 
   return (
     <Dialog
@@ -127,7 +146,7 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
             sx={{ overflowY: 'auto', '::-webkit-scrollbar': { background: 'transparent' }, '::-webkit-scrollbar-thumb': { borderRadius: 8 } }}
           >
             <SideBarOptions
-              driverData={selectedDriverData}
+              driverData={formData.selectedDriver}
               formData={formData}
               onFormChange={handleFormChange}
               clearAllPoints={clearAllPoints}
@@ -141,7 +160,7 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
               onPointsUpdate={handleMapUpdate}
               availableDrivers={isSelectingDriver ? availableDrivers : []}
               onDriverSelect={handleDriverSelection}
-              selectedDriver={formData.selectedDriver}
+              selectedDriver={formData.selectedDriver?.driverId}
             />
           </Box>
         </Box>

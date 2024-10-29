@@ -13,7 +13,8 @@ export const HomeMain = () => {
   const [drivers, setDrivers] = useState([]);
   const [stops, setStops] = useState([]);
   const [rides, setRides] = useState([]);
-  const socket = useSocket(); // Obtenemos el socket del contexto
+  const [isLoading, setIsLoading] = useState(true);
+  const socket = useSocket(); 
 
   useEffect(() => {
     if (!socket) return;
@@ -24,7 +25,6 @@ export const HomeMain = () => {
         const existingDriverIndex = prevDrivers.findIndex((driver) => driver.movilCode === data.movilCode);
 
         if (existingDriverIndex !== -1) {
-          // Actualiza la ubicación y el estado del conductor si ya existe
           const updatedDrivers = [...prevDrivers];
           updatedDrivers[existingDriverIndex] = { 
             ...updatedDrivers[existingDriverIndex], 
@@ -34,7 +34,6 @@ export const HomeMain = () => {
           };
           return updatedDrivers;
         } else {
-          // Agrega un nuevo conductor
           return [...prevDrivers, data];
         }
       });
@@ -74,7 +73,8 @@ export const HomeMain = () => {
 
   const getRides = async () => {
     try {
-      const response = await ridesEndpoints.getRides(); 
+      setIsLoading(true); 
+      const response = await ridesEndpoints.getRides(25, 1); 
       console.log(response);
       setRides(response);
     } catch (error) {
@@ -82,6 +82,8 @@ export const HomeMain = () => {
         useLogout();
       }
       console.error(error);
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -111,7 +113,10 @@ export const HomeMain = () => {
         height="86vh"
         overflow="hidden"
       >
-        <RidesTableDisplay />
+        <RidesTableDisplay 
+          rides={rides}
+          isLoading={isLoading}
+        />
       </Box>
     </Box>
   );

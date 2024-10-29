@@ -3,9 +3,13 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { point } from 'leaflet';
 
 const mapToken = import.meta.env.VITE_MAPBOX_TOKEN;
 mapboxgl.accessToken = mapToken;
+
+const ROUTE_SOURCE_ID = 'route-source';
+const ROUTE_LAYER_ID = 'route-layer';
 
 export const RideMap = ({ 
   points, 
@@ -20,6 +24,7 @@ export const RideMap = ({
   const markersRef = useRef([]);
   const driversMarkersRef = useRef({});
   const maxPoints = 5;
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState(null);
@@ -27,19 +32,57 @@ export const RideMap = ({
   const [selectedDriverData, setSelectedDriverData] = useState(null);
   const [driverSelectionDialog, setDriverSelectionDialog] = useState(false);
 
+  // Initialize map only once
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: initialCenter || [-66.1571, -17.3937],
+      zoom: 12,
+      dragPan: true,
+    });
+
+    map.on('load', () => {
+      setMapLoaded(true);
+      map.getCanvas().style.cursor = 'default';
+      
+      // Simplified click handler
+      map.on('click', (e) => {
+        const targetElement = e.originalEvent.target;
+        const isDriverMarker = targetElement.closest('.driver-marker');
+        
+        if (!isDriverMarker) {
+          handleMapClick(e);
+        }
+      });
+    });
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      setMapLoaded(false);
+    };
+  }, []);
+
+  // Handle driver markers
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
 
     // Clear existing driver markers
     Object.values(driversMarkersRef.current).forEach(marker => marker.remove());
     driversMarkersRef.current = {};
 
-    // Add new driver markers if we're in selection mode
+    // Add new driver markers
     availableDrivers.forEach(driver => {
       const el = document.createElement('div');
       el.style.display = 'flex';
       el.style.flexDirection = 'column';
       el.style.alignItems = 'center';
+      el.className = 'driver-marker';
 
       const label = document.createElement('div');
       label.textContent = driver.movilCode;
@@ -56,52 +99,30 @@ export const RideMap = ({
         element: el,
         anchor: 'bottom',
       })
-        .setLngLat([driver.lng, driver.lat])
-        .addTo(mapRef.current);
+      .setLngLat([driver.lng, driver.lat])
+      .addTo(mapRef.current);
 
-      marker.getElement().addEventListener('click', () => {
-        setSelectedDriverData(driver); // Guardamos el conductor seleccionado
-        setDriverSelectionDialog(true); // Abrimos el diálogo de selección de conductor
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setSelectedDriverData(driver);
+        setDriverSelectionDialog(true);
       });
 
       driversMarkersRef.current[driver.driverId] = marker;
     });
-  }, [availableDrivers]);
+  }, [availableDrivers, mapLoaded]);
 
+  // Handle route points
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: initialCenter || [-66.1571, -17.3937],
-      zoom: 12,
-      dragPan: true,
-    });
-
-    mapRef.current.on('load', () => {
-      mapRef.current.getCanvas().style.cursor = 'default';
-      mapRef.current.on('click', handleMapClick);
-    });
-
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-      }
-    };
-  }, [initialCenter]);
-
-  useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapLoaded) return;
 
     // Remove existing markers and route
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
-    if (mapRef.current.getLayer('route')) {
-      mapRef.current.removeLayer('route');
-      mapRef.current.removeSource('route');
-    }
+    
+    removeRoute();
 
+    // Add point markers
     points.forEach((point, index) => {
       const color = index === 0 ? 'green' : '#3b87e2';
       const name = `Punto ${String.fromCharCode(65 + index)}`;
@@ -139,11 +160,10 @@ export const RideMap = ({
         draggable: true,
         anchor: 'bottom',
       })
-        .setLngLat([point.lng, point.lat])
-        .addTo(mapRef.current);
+      .setLngLat([point.lng, point.lat])
+      .addTo(mapRef.current);
 
       marker.on('dragend', () => updateMarkerPosition(index));
-
       markersRef.current.push(marker);
     });
 
@@ -151,17 +171,70 @@ export const RideMap = ({
     if (points.length >= 2) {
       drawRoute();
     }
-  }, [points]);
+  }, [points, mapLoaded]);
 
-  const handleDriverSelect = () => {
-    if (selectedDriverData) {
-      onDriverSelect(selectedDriverData.driverId); // Guardamos el ID del conductor seleccionado
-      setDriverSelectionDialog(false); // Cerramos el diálogo de selección
+  const removeRoute = () => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (map.getLayer(ROUTE_LAYER_ID)) {
+      map.removeLayer(ROUTE_LAYER_ID);
+    }
+    if (map.getSource(ROUTE_SOURCE_ID)) {
+      map.removeSource(ROUTE_SOURCE_ID);
+    }
+  };
+
+  const drawRoute = async () => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const coordinates = points.map(point => `${point.lng},${point.lat}`).join(';');
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0].geometry;
+
+        removeRoute();
+
+        map.addSource(ROUTE_SOURCE_ID, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: route
+          }
+        });
+
+        map.addLayer({
+          id: ROUTE_LAYER_ID,
+          type: 'line',
+          source: ROUTE_SOURCE_ID,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#3b87e2',
+            'line-width': 5,
+          }
+        });
+
+        const bounds = new mapboxgl.LngLatBounds();
+        route.coordinates.forEach(coord => bounds.extend(coord));
+        map.fitBounds(bounds, { padding: 50 });
+      }
+    } catch (error) {
+      console.error('Error fetching route:', error);
     }
   };
 
   const handleMapClick = (e) => {
-    if (points.length === maxPoints) {
+    if (points.length >= maxPoints) {
       alert('Solo puedes añadir hasta 5 puntos.');
       return;
     }
@@ -205,49 +278,94 @@ export const RideMap = ({
         onPointsUpdate([...points, newPoint]);
       }
     } catch (error) {
-      console.error('Error fetching geocoding data:', error);
+      console.error('Error fetching location name:', error);
     } finally {
       setIsLoading(false);
       handleModalClose();
     }
   };
 
-  const updateMarkerPosition = async (index) => {
+  const updateMarkerPosition = (index) => {
+    const marker = markersRef.current[index];
+    const lngLat = marker.getLngLat();
     const updatedPoints = [...points];
-    const { lng, lat } = markersRef.current[index].getLngLat();
+    updatedPoints[index] = { ...updatedPoints[index], lng: lngLat.lng, lat: lngLat.lat };
+    onPointsUpdate(updatedPoints);
+  };
 
-    try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
-      );
-      const data = await response.json();
-      const newPlaceName = data.features[0]?.place_name || 'Ubicación desconocida';
-
-      updatedPoints[index] = { lng, lat, name: newPlaceName };
-      onPointsUpdate(updatedPoints);
-    } catch (error) {
-      console.error('Error fetching new location name:', error);
+  const handleDriverSelect = () => {
+    if (selectedDriverData) {
+      onDriverSelect(selectedDriverData);
+      setDriverSelectionDialog(false);
     }
   };
 
   return (
-    <Box sx={{ position: 'relative', height: '100%' }}>
-      <Box ref={mapContainerRef} sx={{ height: '100%', borderRadius: 2 }} />
+    <Box sx={{ height: '100%', position: 'relative' }}>
+      <Box ref={mapContainerRef} sx={{ height: '100%' }} />
 
-      {isLoading && <p>Cargando nombre de la ubicación...</p>}
+      <Dialog open={isModalOpen} onClose={handleModalClose}>
+  <DialogTitle>
+    Agregar punto
+    <IconButton
+      aria-label="close"
+      onClick={handleModalClose}
+      sx={{
+        position: 'absolute',
+        right: 10,
+        top: 10,
+        color: (theme) => theme.palette.grey[500]
+      }}
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      {selectedPoint
+        ? `¿Quieres agregar este punto como el punto de recojo (A) o como otro punto de la ruta?`
+        : 'No se ha seleccionado ningún punto.'}
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions sx={{mx: 2, mb: 1}}>
+    <Button onClick={() => addPoint(true)} disabled={isLoading || points.length > 0} variant="contained" color="success" sx={{fontWeight: 'bold'}}>
+      Punto de recojo (A)
+    </Button>
+    <Button onClick={() => addPoint(false)} disabled={isLoading || point.length === 0} variant="contained" color="primary" sx={{fontWeight: 'bold'}}>
+      Agregar punto de ruta (B, C, D, E)
+    </Button>
+  </DialogActions>
+</Dialog>
 
-      {/* Diálogo de Confirmación de Selección de Conductor */}
       <Dialog open={driverSelectionDialog} onClose={() => setDriverSelectionDialog(false)}>
-        <DialogTitle>Seleccionar Conductor</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          Seleccionar Conductor
+          <IconButton
+            aria-label="close"
+            onClick={() => setDriverSelectionDialog(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            ¿Deseas seleccionar al conductor {selectedDriverData?.movilCode}?
-          </DialogContentText>
+          {selectedDriverData && (
+            <DialogContentText>
+              ¿Estás seguro de que deseas seleccionar al conductor {selectedDriverData.movilCode}?
+            </DialogContentText>
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDriverSelectionDialog(false)}>Cancelar</Button>
-          <Button onClick={handleDriverSelect} color="primary">
-            Confirmar
+        <DialogActions sx={{mx: 2, mb: 1}}>
+          <Button onClick={() => setDriverSelectionDialog(false)} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleDriverSelect} color="primary" variant="contained" sx={{fontWeight: 'bold'}}>
+            Seleccionar
           </Button>
         </DialogActions>
       </Dialog>

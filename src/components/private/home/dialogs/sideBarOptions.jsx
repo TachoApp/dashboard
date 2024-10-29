@@ -62,7 +62,7 @@ export const SideBarOptions = ({
         },
         // Firefox
         scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(59, 135, 226, 0.6) transparent',
+        scrollbarColor: '#1976d2 transparent',
       }}
     >
       <Box sx={{ pb: 2 }}> {/* Padding bottom para evitar que el último elemento quede cortado */}
@@ -212,7 +212,7 @@ export const SideBarOptions = ({
               color="primary"
               onClick={handleDriverSelection}
               startIcon={<PersonSearchIcon />}
-              sx={{ mb: 1 }}
+              sx={{ mb: 1, fontWeight: 'bold' }}
             >
               Seleccionar conductor
             </Button>
