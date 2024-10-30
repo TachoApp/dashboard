@@ -14,6 +14,7 @@ export const HomeMain = () => {
   const [stops, setStops] = useState([]);
   const [rides, setRides] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSilentLoading, setIsSilentLoading] = useState(false);
   const socket = useSocket(); 
 
   useEffect(() => {
@@ -50,6 +51,22 @@ export const HomeMain = () => {
       });
     });
 
+    socket.on("rideStatusChange", async (data) => {
+      console.log('status change data: ', data);
+      setIsSilentLoading(true);
+      try {
+        const response = await ridesEndpoints.getRides(25, 1);
+        setRides(response);
+      } catch (error) {
+        if (error.response?.status === 498) {
+          useLogout();
+        }
+        console.error(error);
+      } finally {
+        setIsSilentLoading(false);
+      }
+    });
+
     socket.on("driverDisconnect", (data) => {
       console.log('Driver disconnected:', data);
       setDrivers((prevDrivers) => {
@@ -62,6 +79,7 @@ export const HomeMain = () => {
     return () => {
       socket.off("locationUpdate");
       socket.off("driverStatusUpdate");
+      socket.off("rideStatusChange");
       socket.off("driverDisconnect");
     };
   }, [socket]);
@@ -103,7 +121,7 @@ export const HomeMain = () => {
     <Box display="flex">
       {!isMobile && (
         <Box marginRight={2} flexShrink={0}>
-          <Map drivers={drivers} stops={stops} />
+          <Map drivers={drivers} stops={stops} getRides={getRides}/>
         </Box>
       )}
 
@@ -115,7 +133,7 @@ export const HomeMain = () => {
       >
         <RidesTableDisplay 
           rides={rides}
-          isLoading={isLoading}
+          isLoading={isLoading && !isSilentLoading}
         />
       </Box>
     </Box>

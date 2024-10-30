@@ -19,7 +19,7 @@ const initialFormState = {
   selectedDriver: null,
 };
 
-export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
+export const ManualRideDialog = ({ open, onClose, availableDrivers, getRides }) => {
   const { handleOpenToast } = useToast();
   const [isSelectingDriver, setIsSelectingDriver] = useState(false);
   const [formData, setFormData] = useState(initialFormState);
@@ -100,6 +100,7 @@ export const ManualRideDialog = ({ open, onClose, availableDrivers }) => {
     try {
       const response = await ridesEndpoints.createManualRide(payload);
       console.log(response);
+      getRides()
       handleOpenToast("Carrera manual creada exitosamente", "success");
       resetForm(); // Reset del formulario después de crear exitosamente
       onClose();

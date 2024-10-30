@@ -23,23 +23,23 @@ import {
 const getEstadoChip = (estado) => {
   switch (estado) {
     case "created":
-      return <Chip label="Creado" color="default" />;
+      return <Chip label="Creado" sx={{ bgcolor: '#9e9e9e', color: 'white' }} />; // Gris
     case "onway":
-      return <Chip label="En camino" color="primary" />;
+      return <Chip label="En camino" color="primary" />; // Azul
     case "waiting":
-      return <Chip label="Esperando" color="warning" />;
+      return <Chip label="Esperando" color="warning" />; // Amarillo
     case "going":
-      return <Chip label="Yendo" color="info" />;
+      return <Chip label="Yendo" sx={{ bgcolor: '#00bcd4', color: 'white' }} />; // Cyan
     case "riding":
-      return <Chip label="En curso" color="success" />;
+      return <Chip label="En curso" sx={{ bgcolor: '#673ab7', color: 'white' }} />; // Morado
     case "califications":
-      return <Chip label="Calificaciones" color="secondary" />;
+      return <Chip label="Calificaciones" color="secondary" />; // Rosa
     case "completed":
-      return <Chip label="Completado" color="success" />;
+      return <Chip label="Completado" color="success" />; // Verde
     case "canceled":
-      return <Chip label="Cancelado" color="error" />;
+      return <Chip label="Cancelado" color="error" />; // Rojo
     default:
-      return <Chip label="Desconocido" />;
+      return <Chip label="Desconocido" sx={{ bgcolor: '#795548', color: 'white' }} />; // Marrón
   }
 };
 
@@ -54,7 +54,6 @@ const getCalificacion = (calificacion) => {
   return estrellas;
 };
 
-// Función para mostrar el ícono del tipo de ride con tooltip
 const getRideTypeIcon = (type) => {
   return type === "manual" ? (
     <Tooltip title="Manual">
@@ -82,16 +81,16 @@ export const RidesTableDisplay = ({ rides, isLoading }) => {
           background: "transparent",
         },
         "&::-webkit-scrollbar-thumb": {
-          background: "rgba(59, 135, 226, 0.6)", // Color azul con transparencia
+          background: "rgba(59, 135, 226, 0.6)",
           borderRadius: "4px",
           "&:hover": {
-            background: "rgba(59, 135, 226, 0.8)", // Más oscuro al pasar el mouse
+            background: "rgba(59, 135, 226, 0.8)",
           },
         },
         "&::-webkit-scrollbar-track": {
           background: "transparent",
         },
-        scrollbarWidth: "thin", // Firefox
+        scrollbarWidth: "thin",
         scrollbarColor: "#1976d2 transparent",
       }}
     >

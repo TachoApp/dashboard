@@ -7,7 +7,7 @@ import { ManualRideDialog } from "./dialogs/main";
 
 const mapToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-export const Map = ({ drivers, stops }) => {
+export const Map = ({ drivers, stops, getRides }) => {
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
   const markersRef = useRef({});
@@ -190,6 +190,7 @@ export const Map = ({ drivers, stops }) => {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         availableDrivers={availableDrivers}
+        getRides={getRides}
       />
     </Box>
   );
