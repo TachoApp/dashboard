@@ -127,7 +127,7 @@ export const HomeMain = () => {
 
       <Box
         flexGrow={1}
-        width={{ xs: "76vw", sm: "84vw", md: "88vw", lg: "49vw", xl: "52vw" }}
+        width={{ xs: "76vw", sm: "84vw", md: "84vw", lg: "42vw", xl: "47vw" }}
         height="86vh"
         overflow="hidden"
       >

@@ -167,7 +167,7 @@ export const Map = ({ drivers, stops, getRides }) => {
       <Box
         ref={mapContainerRef}
         style={{
-          width: "40vw",
+          width: "45vw",
           height: "86vh",
           borderRadius: theme.shape.borderRadius,
         }}

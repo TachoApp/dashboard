@@ -86,11 +86,12 @@ export const RideMap = ({
 
       const label = document.createElement('div');
       label.textContent = driver.movilCode;
-      label.style.color = 'black';
-      label.style.backgroundColor = 'white';
-      label.style.padding = '2px 5px';
-      label.style.borderRadius = '3px';
-      label.style.fontSize = '12px';
+      label.style.color = 'white';
+      label.style.backgroundColor = 'darkGreen';
+      label.style.padding = '4px 8px';
+      label.style.borderRadius = '4px';
+      label.style.border = 'solid 2px black'
+      label.style.fontSize = '16px';
       label.style.fontWeight = 'bold';
       label.style.marginBottom = '5px';
       el.appendChild(label);
