@@ -180,7 +180,7 @@ export const RidesTableDisplay = ({ rides, isLoading }) => {
                   {getRideTypeIcon(ride.type)}
                 </TableCell>
                 <TableCell>{ride.driver.movilCode}</TableCell>
-                <TableCell>{ride.driver.personalInfo.fullName}</TableCell>
+                <TableCell>{ride.driver.personalInfo?.fullName}</TableCell>
                 <TableCell>{ride.user.name}</TableCell>
                 <TableCell>
                   {ride.type === "manual"
